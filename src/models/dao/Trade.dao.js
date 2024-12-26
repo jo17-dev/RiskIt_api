@@ -4,6 +4,22 @@ const Database = require('../config/db.config');
 class TradeDAO {
     static db;
 
+
+    static async add(type, tp, sl, position_price, marge){
+        // connexion à la DB
+        TradeDAO.db = Database.getInstance();
+
+        if (TradeDAO.db == null) {
+            throw new Error('La connexion à la base de données a échoué.');
+        }
+
+        try{
+            await TradeDAO.db.promise().query("INSERT INTO trades (type, tp, sl, position_price, marge), VALUES(?, ?, ?, ?)", [type, tp, sl, position_price ,marge])
+        }catch(err){
+            console.log("Erreur SQL: "+err.message);
+        }
+    }
+
     // Méthode pour récupérer un trade par son ID
     static async searchById(id) {
         // Connexion à la base de données
@@ -27,7 +43,7 @@ class TradeDAO {
 
             // Supposons que le résultat contient un seul enregistrement
             const row = rows[0]; // Prendre la première ligne (ou l'unique ligne)
-            const trade = new Trade(row.id, row.type, row.sl, row.tp, row.marge); // Créer l'objet Trade
+            const trade = new Trade(row.id, row.type, row.sl, row.tp, row.position_price ,row.marge); // Créer l'objet Trade
 
             return trade; // Retourner l'objet Trade
         } catch (err) {
@@ -58,7 +74,7 @@ class TradeDAO {
             }
 
             // Transformation des résultats en instances de Trade
-            const trades = rows.map((row) => new Trade(row.id, row.type, row.sl, row.tp, row.marge));
+            const trades = rows.map((row) => new Trade(row.id, row.type, row.sl, row.tp, row.position_price ,row.marge));
 
             return trades; // Retourner le tableau d'instances de Trade
         } catch (err) {
@@ -68,6 +84,11 @@ class TradeDAO {
     }
 
     // Méthode pour mettre à jour un trade
+    /**
+     * 
+     * @param {integer} id id du trade 
+     * @param {Trade} target  trade à update
+     */
     static async update(id, target) {
         // Connexion à la base de données
         TradeDAO.db = Database.getInstance();

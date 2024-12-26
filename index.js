@@ -19,7 +19,7 @@ app.use((req, res, next)=>{
 });
 
 app.use("/history", require('./src/routes/history.routes'));
-
+app.use("/lbank", require("./src/routes/lbank.routes"));
 httpServer.listen(port, ()=>{
     console.log("server started on port ", port);
 });

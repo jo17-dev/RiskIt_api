@@ -10,18 +10,19 @@ CREATE TABLE IF NOT EXISTS trades (
     type ENUM('long', 'short') NOT NULL,  -- type peut être 'long' ou 'short'
     tp DOUBLE NOT NULL, -- take profit
     sl DOUBLE NOT NULL, -- stoop loss
-    marge DOUBLE NOT NULL -- marge
+    position_price DOUBLE NOT NULL,
+    marge DOUBLE NULL -- marge
 );
 
 -- Étape 4: Insérer 10 lignes dans la table 'trades'
-INSERT INTO trades (type, tp, sl, marge) VALUES
-('long', 100.1237, 99.12890, 1.2341),
-('short', 110.2371, 100.7891, 2.3012),
-('long', 120.3459, 110.3901, 3.4523),
-('short', 130.4593, 120.9013, 4.5234),
-('long', 140.5671, 130.5123, 5.6745),
-('short', 150.6715, 140.1235, 6.7456),
-('long', 160.7893, 150.7345, 7.8967),
-('short', 170.8937, 160.3457, 8.9678),
-('long', 180.9015, 170.9567, 9.0189),
-('short', 190.0159, 180.5679, 10.7890);
+INSERT INTO trades (type, tp, sl, position_price, marge) VALUES
+('long', 100.1237, 99.12890, 1.2341, 41),
+('short', 110.2371, 100.7891, 2.3012, 12),
+('long', 120.3459, 110.3901, 3.4523, 23),
+('short', 130.4593, 120.9013, 4.5234, 34),
+('long', 140.5671, 130.5123, 5.6745, 45),
+('short', 150.6715, 140.1235, 6.7456, 56),
+('long', 160.7893, 150.7345, 7.8967, 67),
+('short', 170.8937, 160.3457, 8.9678, -78),
+('long', 180.9015, 170.9567, 9.0189, 89),
+('short', 190.0159, 180.5679, 10.7890, 0);
