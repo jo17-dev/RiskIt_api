@@ -1,7 +1,3 @@
-#script de création de la base de données:
-resources/*
-
-
 # Logs
 logs
 *.log

@@ -1,16 +1,17 @@
-import mysql from 'mysql2';
+const mysql = require('mysql2');
 require('dotenv').config();
 
 
-class Database {
-    private static connection: mysql.Connection;
 
-    public constructor(){
+class Database {
+    static #connection;
+
+    constructor(){
 
     };
 
     // Le constructeur prend en paramètres les informations de connexion
-    public static getInstance(): mysql.Connection {
+    static getInstance(){
 
         Database.connection = mysql.createConnection({
             host: process.env.db_host,
@@ -34,7 +35,7 @@ class Database {
     }
 
     // Méthode pour fermer la connexion
-    public static close(): void {
+    static close() {
         Database.connection.end((err) => {
             if (err) {
                 console.error('Erreur lors de la fermeture de la connexion à la base de données :', err.stack);
@@ -45,4 +46,4 @@ class Database {
     }
 }
 
-export default Database;
+module.exports = Database;
