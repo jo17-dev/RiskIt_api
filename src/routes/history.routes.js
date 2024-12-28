@@ -3,6 +3,7 @@ const router = require('express').Router();
 const historyController = require('../controllers/history.controller');
 
 
+// historique complet des routes
 router.get('/', (req, res)=>{
     historyController.getCompleteHistory()
     .then((value)=>{

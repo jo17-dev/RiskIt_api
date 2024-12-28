@@ -1,5 +1,6 @@
 const Trade = require('../Trade.class');
-const Database = require('../config/db.config');
+
+const dataBaseRequestor = require('../config/database.requestor');
 
 class TradeDAO {
     static db;
@@ -54,39 +55,14 @@ class TradeDAO {
 
     // Méthode pour récupérer tous les trades
     static async searchAll() {
-        // Connexion à la base de données
-        TradeDAO.db = Database.getInstance();
-
-        if (TradeDAO.db == null) {
-            throw new Error('La connexion à la base de données a échoué.');
-        }
-
-        try {
-            // Exécution de la requête SQL avec await
-            const [result] = await TradeDAO.db.promise().query('SELECT * FROM trades');
-            
-            // result est de type RowDataPacket[], donc on peut directement accéder aux lignes
-            const rows = result;
-
-            // Si aucun résultat, renvoyer un tableau vide
-            if (rows.length === 0) {
-                return [];
-            }
-
-            // Transformation des résultats en instances de Trade
-            const trades = rows.map((row) => new Trade(row.id, row.type, row.sl, row.tp, row.position_price ,row.marge));
-
-            return trades; // Retourner le tableau d'instances de Trade
-        } catch (err) {
-            console.error('Erreur SQL:', err.message);
-            throw err; // Rejeter l'erreur en cas de problème SQL
-        }
+        let result = await dataBaseRequestor.makeRequest("SELECT * FROM trades");
+        return result[0]; 
     }
 
     // Méthode pour mettre à jour un trade
     /**
      * 
-     * @param {integer} id id du trade 
+     * @param {nteger} id id du trade 
      * @param {Trade} target  trade à update
      */
     static async update(id, target) {

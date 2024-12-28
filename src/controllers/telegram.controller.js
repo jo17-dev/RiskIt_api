@@ -1,3 +1,5 @@
+const TelegramAccountDAO = require('../models/dao/telegramAccount.dao');
+
 // fonction de démarge de l'application telegram
 const startEngine = (phoneNumber)=>{
     // 1st: we make a request to DB to search if une session existe pour ce numéro
@@ -12,4 +14,12 @@ const startEngine = (phoneNumber)=>{
 // fonction de fermeture de l'app telegram
 const closeEngine = ()=>{
     // ici, on vas juster clear le setInterval qui check chaque 5mins
+    console.log("closed engine")
+    TelegramAccountDAO.getAll();
+}
+
+
+
+module.exports = {
+    startEngine, closeEngine
 }
