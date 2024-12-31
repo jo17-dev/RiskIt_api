@@ -15,7 +15,9 @@ const connectClient = async (sessionString, apiId, apiHash)=>{
         reconnectRetries: 5
     });
     
-    return await client.start();
+    await client.start();
+
+    return client;
 }
 
 /**
@@ -26,7 +28,7 @@ const connectClient = async (sessionString, apiId, apiHash)=>{
  * @param {number} params.numberOfMessagesPerChanel nombre de messages à récupérer par channel
  * @param {string[]} params.chanels Groupes à observer pour les messages
  * 
- * @returns {Object[]} tableau de json pour les messages par discussions
+ * @returns {Array<{chanelTitle: string, chanelId: number, messages: string[] }>} Un tableau d'objets où chaque objet contient des informations sur un canal.
  */
 const getLatestMessages = async (client, {chanels=[], time=5000, numberOfMessagesPerChanel=5})=>{
     let result = [];
@@ -34,10 +36,9 @@ const getLatestMessages = async (client, {chanels=[], time=5000, numberOfMessage
     // on récupère l'ensemble des discussions concernées
     let allChats = (await client.getDialogs({archived: false})).filter(
         (value)=>{
-            console.log(value.title);
-
             for(let i=0; i<chanels.length;i++){
                 if(value.title == chanels[i]){
+                    console.log(value.title);
                     return value;
                 }
             }
@@ -48,16 +49,26 @@ const getLatestMessages = async (client, {chanels=[], time=5000, numberOfMessage
 
     for(let i=0; i<allChats.length; i++){
         let targetEntity = await client.getEntity(allChats[i].entity.id);
-        let targetMessages = await client.getMessages(targetEntity, {
+        let unsanitizedMessages = await client.getMessages(targetEntity, {
             limit: numberOfMessagesPerChanel,
         });
+        
+        let sanitizedMessages = [];
+
+        for(let j=0; j< unsanitizedMessages.length; j++){
+            console.log(unsanitizedMessages.at(i).message)
+            sanitizedMessages.push(
+                unsanitizedMessages.at(j).message
+            );
+        }
         
         result.push({
             chanelTitle: targetEntity.title,
             chanelId: targetEntity.id,
-            messages: targetMessages
+            messages: sanitizedMessages
         });
     }
+
 
     console.log("/////// nombre de messages au total: ", result.length);
 

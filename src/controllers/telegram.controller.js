@@ -1,4 +1,6 @@
+const { StringSession } = require('telegram/sessions');
 const TelegramAccountDAO = require('../models/dao/telegramAccount.dao');
+const TelegramService = require('../services/telegram.service');
 
 
 const clientPool = []; // ensemble des clients connectés
@@ -8,9 +10,32 @@ const clientPool = []; // ensemble des clients connectés
  * Fonction pour initier l'ajout d'un client à la machine de stream
  * @param {string} phoneNumber  numéro de telephone internationale
  */
-const startEngine = (phoneNumber)=>{
-    // 1st: we make a request to DB to search if une session existe pour ce numéro
+const startEngine = async (phoneNumber)=>{
+    console.log("the telegram engine is starting...")
+    // 1st: we make a request to DB to search if une session existe pour ce numéro et 
+    const apiId = process.env.API_ID;
+    const apiHash = process.env.API_HASH;
+    const sessionString = process.env.SESSION_STRING
     // 2nd: si elle existe, on vas essayer de logger avec telegram.service via sa session id.
+    if(true){
+        let target = await TelegramService.connectClient(
+            new StringSession(sessionString),
+            apiId,
+            apiHash
+        );
+        clientPool.push(target);
+
+        setInterval(async ()=>{
+            let result = await TelegramService.getLatestMessages(target, {
+                chanels: ["Crypto Space VIP", "Bob"],
+                time: 5000
+            });
+
+            console.log("MESSAGES de ", result[0].chanelId);
+            console.log(result[0].messages);
+            console.log("FIN MESSAGES");
+        }, 10000);
+    }
     // 3th: si ell n'existe pas, on vas créer un nouvel id de connection et stocker ses infos ( chanels à monitorer, compte, session telegram)
 }
 

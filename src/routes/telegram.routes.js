@@ -11,11 +11,20 @@ router.post('/start', (req, res)=>{
     if('phoneNumber' in req.body){
         console.log("demarage de telegram; numéro de telephone: ", req.body.phoneNumber);
 
-        telegramController.startEngine()
-        res.json({
-            statusText: "OK",
-            message: "Le numéro de telephone est autorisé. Attente du code d'authenfiication reçu via telegram"
-        });
+        telegramController.startEngine().then(
+            (value)=>{
+                res.json({
+                    statusText: "OK",
+                    message: "Le numéro de telephone est autorisé. Attente du code d'authenfiication reçu via telegram"
+                });
+            }
+        ).catch((reason)=>{
+            res.json({
+                statusText: "Failed",
+                message: "Le numéro n'est peut être pas autorisé. nous l'avons quand meme enregistré dans notre base"
+            });
+        })
+
     }
 
 });
