@@ -34,9 +34,7 @@ const startEngine = async (phoneNumber)=>{
                     time: 5000
                 });
 
-                console.log("MESSAGES de ", result[0].chanelId);
-                console.log(result[i].messages);
-                console.log("FIN MESSAGES");
+                console.log("nombre de messages dU client telegram ", i , " : ", result.length);
             }
         }, 10000);
     }

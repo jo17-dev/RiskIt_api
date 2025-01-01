@@ -37,7 +37,7 @@ const getLatestMessages = async (client, {chanels=[], time=5000, numberOfMessage
     let allChats = (await client.getDialogs({archived: false})).filter(
         (value)=>{
             for(let i=0; i<chanels.length;i++){
-                if(value.title == chanels[i]){
+                if(value.title == chanels[i] && value.date >= (Date.now()-(time*1000)) ){
                     console.log(value.title);
                     return value;
                 }
