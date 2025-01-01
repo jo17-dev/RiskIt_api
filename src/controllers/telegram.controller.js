@@ -4,6 +4,7 @@ const TelegramService = require('../services/telegram.service');
 
 
 const clientPool = []; // ensemble des clients connectés
+let timingId;
 
 // fonction de démarge de l'application telegram
 /**
@@ -27,14 +28,16 @@ const startEngine = async (phoneNumber)=>{
         clientPool.push(target);
 
         setInterval(async ()=>{
-            let result = await TelegramService.getLatestMessages(target, {
-                chanels: ["Crypto Space VIP", "Bob"],
-                time: 5000
-            });
+            for(let i=0; i<clientPool.length; i++){
+                let result = await TelegramService.getLatestMessages(clientPool[i], {
+                    chanels: ["Crypto Space VIP", "Bob"],
+                    time: 5000
+                });
 
-            console.log("MESSAGES de ", result[0].chanelId);
-            console.log(result[0].messages);
-            console.log("FIN MESSAGES");
+                console.log("MESSAGES de ", result[0].chanelId);
+                console.log(result[i].messages);
+                console.log("FIN MESSAGES");
+            }
         }, 10000);
     }
     // 3th: si ell n'existe pas, on vas créer un nouvel id de connection et stocker ses infos ( chanels à monitorer, compte, session telegram)
@@ -67,7 +70,7 @@ const getEngineStatut = ()=>{
 const closeEngine = ()=>{
     // ici, on vas juster clear le setInterval qui check chaque 5mins
     console.log("closed engine")
-    TelegramAccountDAO.getAll();
+    clearInterval(timingId);
 }
 
 
