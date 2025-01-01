@@ -52,7 +52,6 @@ const getLatestMessages = async (client, {chanels=[], time=5000, numberOfMessage
         let unsanitizedMessages = await client.getMessages(targetEntity, {
             limit: numberOfMessagesPerChanel,
         });
-        
         let sanitizedMessages = [];
 
         for(let j=0; j< unsanitizedMessages.length; j++){

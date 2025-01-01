@@ -12,13 +12,14 @@ const clientPool = []; // ensemble des clients connectés
  */
 const startEngine = async (phoneNumber)=>{
     console.log("the telegram engine is starting...")
-    // 1st: we make a request to DB to search if une session existe pour ce numéro et 
+    // 1st: we make a request to DB to search if une session existe pour ce numéro
     const apiId = process.env.API_ID;
     const apiHash = process.env.API_HASH;
     const sessionString = process.env.SESSION_STRING
     // 2nd: si elle existe, on vas essayer de logger avec telegram.service via sa session id.
     if(true){
         let target = await TelegramService.connectClient(
+            // Naaaah ttkkkt j'ai changé ce que tu cherche dans mes commits hahahah
             new StringSession(sessionString),
             apiId,
             apiHash
