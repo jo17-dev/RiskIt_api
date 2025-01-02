@@ -14,6 +14,24 @@ CREATE TABLE IF NOT EXISTS trades (
     marge DOUBLE NULL -- marge
 );
 
+
+CREATE TABLE IF NOT EXISTS telegramAccounts (
+    phoneNumber VARCHAR(14) PRIMARY KEY,
+    session_string TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS monitoredChanels (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nom VARCHAR(100) NOT NULL,
+    idTelegramAccount VARCHAR(14),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (idTelegramAccount) REFERENCES telegramAccounts(phoneNumber)
+);
+
+
 -- Étape 4: Insérer 10 lignes dans la table 'trades'
 INSERT INTO trades (type, tp, sl, position_price, marge) VALUES
 ('long', 100.1237, 99.12890, 1.2341, 41),
