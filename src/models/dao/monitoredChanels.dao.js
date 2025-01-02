@@ -35,3 +35,5 @@ class MonitoredChanelDAO {
 
 
 }
+
+module.exports = MonitoredChanelDAO;
