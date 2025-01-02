@@ -1,5 +1,6 @@
 const { StringSession } = require('telegram/sessions');
-const TelegramAccountDAO = require('../models/dao/telegramAccount.dao');
+const {TelegramAccountDAO} = require('../models/dao/telegramAccount.dao');
+const {TelegramAccount} = require('../models/TelegramAccount.class');
 const TelegramService = require('../services/telegram.service');
 
 
@@ -13,7 +14,16 @@ let timingId;
  */
 const startEngine = async (phoneNumber)=>{
     console.log("the telegram engine is starting...")
+    let targetTelegramAccount = await TelegramAccountDAO.getById(phoneNumber);
     // 1st: we make a request to DB to search if une session existe pour ce numéro
+
+    if(!targetTelegramAccount || targetTelegramAccount == null){
+        console.log("compte telegram non trouvé");
+        throw new Error("Le compte telegram n'as JUSTE pas été trouvé");
+    }
+
+
+    // on suppose qu'ici le compte telegram est recupérré
     const apiId = process.env.API_ID;
     const apiHash = process.env.API_HASH;
     const sessionString = process.env.SESSION_STRING
@@ -30,14 +40,11 @@ const startEngine = async (phoneNumber)=>{
         setInterval(async ()=>{
             for(let i=0; i<clientPool.length; i++){
                 let result = await TelegramService.getLatestMessages(clientPool[i], {
-                    chanels: ["Crypto Space VIP", "Bob", "TFXC SIGNALS"],
+                    chanels: [],
                     time: 3600
                 });
 
                 console.log("nombre de messages du client telegram ", i , " : ", result.length);
-                // for(let j=0; j<result.length; j++){
-                //     console.log(result[j].messages);
-                // }
 
                 console.log(result);
 
