@@ -22,7 +22,7 @@ class TradeDAO {
     }
 
     // Méthode pour récupérer un trade par son ID
-    static async searchById(id) {
+    static async getById(id) {
         // Connexion à la base de données
         TradeDAO.db = Database.getInstance();
 
@@ -54,7 +54,7 @@ class TradeDAO {
     }
 
     // Méthode pour récupérer tous les trades
-    static async searchAll() {
+    static async getAll() {
         let result = await dataBaseRequestor.makeRequest("SELECT * FROM trades");
         return result[0]; 
     }

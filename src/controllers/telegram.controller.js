@@ -30,11 +30,18 @@ const startEngine = async (phoneNumber)=>{
         setInterval(async ()=>{
             for(let i=0; i<clientPool.length; i++){
                 let result = await TelegramService.getLatestMessages(clientPool[i], {
-                    chanels: ["Crypto Space VIP", "Bob"],
-                    time: 5000
+                    chanels: ["Crypto Space VIP", "Bob", "TFXC SIGNALS"],
+                    time: 3600
                 });
 
-                console.log("nombre de messages dU client telegram ", i , " : ", result.length);
+                console.log("nombre de messages du client telegram ", i , " : ", result.length);
+                // for(let j=0; j<result.length; j++){
+                //     console.log(result[j].messages);
+                // }
+
+                console.log(result);
+
+
             }
         }, 10000);
     }
