@@ -24,7 +24,7 @@ const startEngine = async (phoneNumber)=>{
 
 
     // on suppose qu'ici le compte telegram est recupérré
-    const apiId = process.env.API_ID;
+    const apiId = parseInt(process.env.API_ID);
     const apiHash = process.env.API_HASH;
     const sessionString = process.env.SESSION_STRING
     // 2nd: si elle existe, on vas essayer de logger avec telegram.service via sa session id.
@@ -40,7 +40,7 @@ const startEngine = async (phoneNumber)=>{
         setInterval(async ()=>{
             for(let i=0; i<clientPool.length; i++){
                 let result = await TelegramService.getLatestMessages(clientPool[i], {
-                    chanels: [],
+                    chanels:  ["Crypto Space VIP", "Bob", "TFXC SIGNALS"],
                     time: 3600
                 });
 

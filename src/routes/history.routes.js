@@ -7,7 +7,7 @@ const historyController = require('../controllers/history.controller');
 router.get('/', (req, res)=>{
     historyController.getCompleteHistory()
     .then((value)=>{
-        console.log("trades récupéer");
+        console.log("trades récupés");
         res.json({
             datas: value
         });     
