@@ -2,10 +2,11 @@ const { StringSession } = require('telegram/sessions');
 const {TelegramAccountDAO} = require('../models/dao/telegramAccount.dao');
 const {TelegramAccount} = require('../models/TelegramAccount.class');
 const TelegramService = require('../services/telegram.service');
+const MonitoredChanelDAO = require('../models/dao/monitoredChanels.dao');
 
 
 const clientPool = []; // ensemble des clients connectés
-let timingId;
+let timingId = null;
 
 // fonction de démarge de l'application telegram
 /**
@@ -19,18 +20,19 @@ const startEngine = async (phoneNumber)=>{
 
     if(!targetTelegramAccount || targetTelegramAccount == null){
         console.log("compte telegram non trouvé");
-        throw new Error("Le compte telegram n'as JUSTE pas été trouvé");
+        throw new Error("Le compte telegram n'as correspondant n'as pas été trouvé.");
     }
-
-
     // on suppose qu'ici le compte telegram est recupérré
+
+    // on vas récupérer les canaux à monitorer:
+    let targetChanels = await MonitoredChanelDAO.getAllByPhoneNumber(targetTelegramAccount.getphoneNumber());
+
     const apiId = parseInt(process.env.API_ID);
     const apiHash = process.env.API_HASH;
     const sessionString = process.env.SESSION_STRING
     // 2nd: si elle existe, on vas essayer de logger avec telegram.service via sa session id.
     if(true){
         let target = await TelegramService.connectClient(
-            // Naaaah ttkkkt j'ai changé ce que tu cherche dans mes commits hahahah
             new StringSession(sessionString),
             apiId,
             apiHash
@@ -40,11 +42,11 @@ const startEngine = async (phoneNumber)=>{
         setInterval(async ()=>{
             for(let i=0; i<clientPool.length; i++){
                 let result = await TelegramService.getLatestMessages(clientPool[i], {
-                    chanels:  ["Crypto Space VIP", "Bob", "TFXC SIGNALS"],
-                    time: 3600
+                    chanels:  targetChanels,
+                    time: (360*60)
                 });
 
-                console.log("nombre de messages du client telegram ", i , " : ", result.length);
+                console.log("nombre de discussions du client telegram ", i , " : ", result.length);
 
                 console.log(result);
 
@@ -72,8 +74,8 @@ const processAuth = (telegramCode)=>{
  */
 const getEngineStatut = ()=>{
     return {
-        is_runing: true,
-        numberOfClients: 24,
+        is_runing: clientPool.length > 0,
+        numberOfClients: clientPool.length,
     }
 }
 

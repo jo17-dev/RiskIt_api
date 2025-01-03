@@ -22,7 +22,7 @@ router.post('/start', (req, res)=>{
             console.log(reason.message);
             res.json({
                 statusText: "Failed",
-                message: "Le compte telegram n'as pas été trouvé"
+                message: reason.message
             });
         })
 
