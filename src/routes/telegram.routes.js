@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const telegramController = require('../controllers/telegram.controller');
 
-
+let stopEngine = null; // i use this to manage to stop the startEngine setInterval it return another function to stop it
 /**
  * router pour lancer une connexion:  
  */
@@ -13,6 +13,7 @@ router.post('/start', (req, res)=>{
 
         telegramController.startEngine(req.body.phoneNumber).then(
             (value)=>{
+                stopEngine = value;
                 res.json({
                     statusText: "OK",
                     message: "Le numéro de telephone est autorisé. allez vers /telegram/statut pour voir le statut de l'agent telegram"
@@ -39,7 +40,19 @@ router.get('/statut', (req, res)=>{
  * Router stopper l'application telegram
  */
 router.get('/stop', (req, res)=>{
-    telegramController.closeEngine();
+    // telegramController.closeEngine();
+    if(stopEngine != null){
+        stopEngine();
+        res.json({
+            statutText: "OK",
+            message: "Telegram a bien été arrêté"
+        });
+    }else{
+        res.json({
+            statutText: "Failed",
+            message: "Telegram n'as pas pû être arreté"
+        });
+    }
 });
 
 

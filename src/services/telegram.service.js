@@ -59,7 +59,17 @@ const getLatestMessages = async (client, {chanels=[], time=300, numberOfMessages
         const actual_timestamp = Date.now();
 
         for(let j=0; j< unsanitizedMessages.length; j++){ // pour chaque message de la discussion
-            console.log(unsanitizedMessages.at(j).date.valueOf() - parseInt(actual_timestamp-(time*1000)));
+            // console.log(unsanitizedMessages.at(j).date.valueOf() - parseInt(actual_timestamp-(time*1000)));
+
+            console.log(
+                "date actuelle: ", new Date(actual_timestamp).toLocaleString('fr-FR', {
+                    
+                }) ,
+             " --- date d'envoir du message: ", new Date(unsanitizedMessages.at(j).date).toLocaleString('fr-FR', {
+                
+                }),
+             "-- message: ", unsanitizedMessages.at(j).message
+            );
             
             
             // la date du message est compatible, avec l'ancieneté recherchée, on le récupère
