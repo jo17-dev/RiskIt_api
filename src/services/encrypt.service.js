@@ -1,5 +1,6 @@
 // fichier de chiffrement et de déchifrement
 require('dotenv').config();
+const crypto = require('crypto');
 
 // Charger les clés RSA depuis les variables d'environnement
 const publicKey = process.env.RSA_PUBLIC_KEY.replace(/\\n/g, '\n');
@@ -21,5 +22,6 @@ function decryptData(encryptedData) {
 
 module.exports = {
     encryptData,
-    decryptData
+    decryptData,
+    encryptDataFromBuffer
 };

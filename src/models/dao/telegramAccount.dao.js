@@ -19,7 +19,6 @@ class TelegramAccountDAO {
         let queryresult = await dataBaseRequestor.makeRequest("SELECT * FROM telegramaccounts WHERE phoneNumber= ?", [phoneNumber]);
         // console.log(result[0]);
 
-
         // Si le taleau des données n'est pas 1 (l'unique..) je sait c'est bizarr haha, on a juste pas de données
         if(queryresult[0].length != 1){
             return null;
@@ -29,10 +28,11 @@ class TelegramAccountDAO {
 
         console.log(result[0].session_string);
 
-
         return new TelegramAccount(
             result[0].phoneNumber,
             result[0]?.session_string || "",
+            result[0].api_id,
+            result[0].api_hash,
             result[0].created_at,
             result[0].updated_at
         );

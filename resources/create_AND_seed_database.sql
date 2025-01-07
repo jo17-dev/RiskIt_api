@@ -17,7 +17,9 @@ CREATE TABLE IF NOT EXISTS trades (
 
 CREATE TABLE IF NOT EXISTS telegramAccounts (
     phoneNumber VARCHAR(14) PRIMARY KEY,
-    session_string TEXT NULL,
+    session_string TEXT NULL, -- encrypted session string
+    api_id TEXT NULL, -- encrypted api_id
+    api_hash TEXT NULL, -- encrypted api_hash
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );

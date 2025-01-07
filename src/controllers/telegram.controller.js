@@ -1,15 +1,16 @@
 const { StringSession } = require('telegram/sessions');
 const {TelegramAccountDAO} = require('../models/dao/telegramAccount.dao');
-const {TelegramAccount} = require('../models/TelegramAccount.class');
 const TelegramService = require('../services/telegram.service');
 const MonitoredChanelDAO = require('../models/dao/monitoredChanels.dao');
+
+const encryptService = require('../services/encrypt.service')
 
 
 const clientPool = []; // ensemble des clients connectés
 
 // fonction de démarge de l'application telegram
 /**
- * Fonction pour initier l'ajout d'un client à la machine de stream
+ * Fonction pour initier et ajouter un client à la machine de stream
  * @param {string} phoneNumber  numéro de telephone internationale
  */
 const startEngine = async (phoneNumber)=>{
@@ -23,18 +24,19 @@ const startEngine = async (phoneNumber)=>{
     }
     // on suppose qu'ici le compte telegram est recupérré
 
+
     // on vas récupérer les canaux à monitorer:
     let targetChanels = await MonitoredChanelDAO.getAllByPhoneNumber(targetTelegramAccount.getphoneNumber());
 
-    const apiId = parseInt(process.env.API_ID);
-    const apiHash = process.env.API_HASH;
-    const sessionString = process.env.SESSION_STRING
+
     // 2nd: si elle existe, on vas essayer de logger avec telegram.service via sa session id.
+
+    // 
     if(true){
         let target = await TelegramService.connectClient(
-            new StringSession(sessionString),
-            apiId,
-            apiHash
+            new StringSession(targetTelegramAccount.getsession_string()), // session_string
+            encryptService.decryptData(targetTelegramAccount.getencryptedApiID()), // apiId déchiffré
+            encryptService.decryptData(targetTelegramAccount.getencryptedApiHash()) // apiHash déchifré
         );
         clientPool.push(target);
 

@@ -3,7 +3,9 @@
  */
 class TelegramAccount {
     #phoneNumber;
-    #session_string;    
+    #session_string;
+    #api_id;
+    #api_hash;    
     #create_at;
     #updated_at;    
 
@@ -11,12 +13,16 @@ class TelegramAccount {
      * Crée une instance de TelegramAccount.
      * @param {string} phoneNumber - Le numéro de téléphone associé au compte Telegram.
      * @param {string} session_string - La chaîne de session Telegram.
+     * @param {string } api_id - version Chiffrée de l'api_ID
+     * @param {string } api_hash - version Chiffrée de l'api_hash
      * @param {string} create_at - La date de création du compte (au format ISO 8601).
      * @param {string} updated_at - La date de mise à jour du compte (au format ISO 8601).
      */
-    constructor(phoneNumber, session_string, create_at, updated_at) {
+    constructor(phoneNumber, session_string, api_id, api_hash ,create_at, updated_at) {
         this.#phoneNumber = phoneNumber;
         this.#session_string = session_string;
+        this.#api_id = api_id;
+        this.#api_hash = api_hash;
         this.#create_at = create_at;
         this.#updated_at = updated_at;
     }
@@ -43,6 +49,40 @@ class TelegramAccount {
      */
     getsession_string() {
         return this.#session_string;
+    }
+
+    /**
+     * Récupère la chaîne de session du compte Telegram.
+     * @returns {string} La version chiffré de api_id
+     */
+    getencryptedApiID() {
+        return this.#api_id;
+    }
+
+    /**
+     * Définit la version chiffrée de api_id.
+     * @param {string} encryptedApiID La version chiffrée de api_id à définir.
+     */
+    setEncryptedApiID(encryptedApiID) {
+        this.#api_id = encryptedApiID;
+    }
+
+    /**
+     * Définit la version chiffrée de api_hash.
+     * @param {string} encryptedApiHash La version chiffrée de api_hash à définir.
+     */
+    setEncryptedApiHash(encryptedApiHash) {
+        this.#api_hash = encryptedApiHash;
+    }
+
+
+    
+    /**
+     * Récupère la chaîne de session du compte Telegram.
+     * @returns {string} La version chiffré de api_id
+     */
+    getencryptedApiHash() {
+        return this.#api_hash;
     }
 
     /**
