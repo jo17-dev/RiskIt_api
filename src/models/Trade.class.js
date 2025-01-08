@@ -1,55 +1,110 @@
+/**
+ * Modèle représentant un trade fait
+ * @typedef {Object} Trade
+ * @property {number} id - L'ID unique du trade.
+ * @property {number} traderClientId - L'ID du client trader associé au trade.
+ * @property {number} signalId - L'ID du signal associé au trade.
+ * @property {number} amountTraded - Le montant échangé.
+ * @property {number} marge - Le bénéfice ou la marge du trade.
+ * @property {Date} createdAt - La date de création du trade.
+ * @property {Date} updatedAt - La date de mise à jour du trade.
+ */
 class Trade {
-    // Déclaration des propriétés
-    constructor(id, type, sl, tp, marge) {
-        // Initialisation des propriétés avec les valeurs du constructeur
-        this.id = id;
-        this.type = type;
-        this.sl = sl;
-        this.tp = tp;
-        this.marge = marge;
+    /**
+     * Crée une instance d'un trade.
+     * @param {number} id - L'ID unique du trade.
+     * @param {number} traderClientId - L'ID du client trader associé.
+     * @param {number} signalId - L'ID du signal associé.
+     * @param {number} amountTraded - Le montant échangé.
+     * @param {number} marge - La marge du trade.
+     * @param {Date} createdAt - La date de création.
+     * @param {Date} updatedAt - La date de mise à jour.
+     */
+    constructor(id, traderClientId, signalId, amountTraded, marge, createdAt, updatedAt) {
+      this.#id = id;
+      this.#traderClientId = traderClientId;
+      this.#signalId = signalId;
+      this.#amountTraded = amountTraded;
+      this.#marge = marge;
+      this.#createdAt = createdAt;
+      this.#updatedAt = updatedAt;
     }
-
-    // Méthodes pour accéder aux propriétés
+  
+    // Propriétés privées
+    #id;
+    #traderClientId;
+    #signalId;
+    #amountTraded;
+    #marge;
+    #createdAt;
+    #updatedAt;
+  
+    // Getters
     getId() {
-        return this.id;
+      return this.#id;
     }
-
-    getType() {
-        return this.type;
+  
+    getTraderClientId() {
+      return this.#traderClientId;
     }
-
-    getSl() {
-        return this.sl;
+  
+    getSignalId() {
+      return this.#signalId;
     }
-
-    getTp() {
-        return this.tp;
+  
+    getAmountTraded() {
+      return this.#amountTraded;
     }
-
+  
     getMarge() {
-        return this.marge;
+      return this.#marge;
     }
-
-    // Méthodes pour modifier les propriétés
-    setId(newId) {
-        this.id = newId;
+  
+    getCreatedAt() {
+      return this.#createdAt;
     }
-
-    setType(newType) {
-        this.type = newType;
+  
+    getUpdatedAt() {
+      return this.#updatedAt;
     }
-
-    setSl(newSl) {
-        this.sl = newSl;
+  
+    // Setters
+    setId(value) {
+      this.#id = value;
     }
-
-    setTp(newTp) {
-        this.tp = newTp;
+  
+    setTraderClientId(value) {
+      this.#traderClientId = value;
     }
-
-    setMarge(newMarge) {
-        this.marge = newMarge;
+  
+    setSignalId(value) {
+      this.#signalId = value;
     }
-}
-
-module.exports = Trade;
+  
+    setAmountTraded(value) {
+      this.#amountTraded = value;
+    }
+  
+    setMarge(value) {
+      this.#marge = value;
+    }
+  
+    setCreatedAt(value) {
+      this.#createdAt = value;
+    }
+  
+    setUpdatedAt(value) {
+      this.#updatedAt = value;
+    }
+  
+    /**
+     * Affiche les détails du trade.
+     * @returns {string} - Retourne les détails du trade.
+     */
+    displayInfo() {
+      return `Trade [${this.#id}]: Amount = ${this.#amountTraded}, Marge = ${this.#marge}`;
+    }
+  }
+  
+  module.exports = Trade;
+  
