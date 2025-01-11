@@ -18,6 +18,8 @@ app.use((req, res, next)=>{
     next();
 });
 
+// app.use(["/history/", "/lbank/", "/telegram/"], require("./src/middlewares/isClient.middleware"));
+
 app.use("/history", require('./src/routes/history.routes'));
 app.use("/lbank", require("./src/routes/lbank.routes"));
 app.use("/telegram", require("./src/routes/telegram.routes"));
