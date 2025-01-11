@@ -22,6 +22,5 @@ function decryptData(encryptedData) {
 
 module.exports = {
     encryptData,
-    decryptData,
-    encryptDataFromBuffer
+    decryptData
 };
