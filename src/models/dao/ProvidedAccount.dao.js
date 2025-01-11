@@ -38,7 +38,7 @@ class ProviderAccountDAO {
         return new ProviderAccount(
           account.id,
           account.user_id,
-          account.plateform_name,
+          account.platform_name,
           account.credentials,
           account.created_at,
           account.updated_at
