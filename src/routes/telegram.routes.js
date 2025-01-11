@@ -44,30 +44,28 @@ router.get('/pool/add/:providerId', (req, res)=>{
     })
 });
 
-// start the telegram engine
+// start the telegram engine:
 router.get('/start', (req, res)=>{
 
     // si le numero de telephone est présent, celà veut dire qu'il faut créer un client telegram
-    if('phoneNumber' in req.body){
-        console.log("demarage de telegram; numéro de telephone: ", req.body.phoneNumber);
+    // On vas démarer le processus de monitoring des comptes telegram.
+        console.log("demarage du process de monitoring telegram");
 
-        telegramController.startEngine(req.body.phoneNumber).then(
-            (value)=>{
-                stopEngine = value;
-                res.json({
-                    statusText: "OK",
-                    message: "Le numéro de telephone est autorisé. allez vers /telegram/statut pour voir le statut de l'agent telegram"
-                });
-            }
-        ).catch((reason)=>{
-            console.log(reason.message);
+    telegramController.startEngine(req.body.phoneNumber).then(
+        (value)=>{
+            stopEngine = value;
             res.json({
-                statusText: "Failed",
-                message: reason.message
+                statusText: "OK",
+                message: "Le moteur a correctement démaré"
             });
-        })
-
-    }
+        }
+    ).catch((reason)=>{
+        console.log(reason.message);
+        res.json({
+            statusText: "Failed",
+            message: reason.message
+        });
+    })
 
 });
 

@@ -4,6 +4,7 @@ const TelegramService = require('../services/telegram.service');
 
 const ProviderAccount = require('../models/ProviderAccount.class');
 const ProviderAccountDAO = require('../models/dao/ProvidedAccount.dao');
+const MonitoredTargetDAO = require('../models/dao/MonitoredTarget.dao');
 
 const encryptService = require('../services/encrypt.service');
 const { TelegramClient} = require('telegram');
@@ -16,57 +17,32 @@ const clientPool = []; // ensemble des clients telegram connectés ( Telegram Co
 
 // fonction de démarge de l'application telegram
 /**
- * Fonction pour initier et ajouter un client à la machine de stream
- * @param {string} phoneNumber  numéro de telephone internationale
+ * Fonction pour lancer l'operation de monitoring
+ * @returns {()=>{stopEngineMethod()}} phoneNumber  numéro de telephone internationale
  */
-const startEngine = async (phoneNumber)=>{
+const startEngine = async ()=>{
+    /**
+     * 1st boucler sur tous les comptes à monitorer
+     * récupérer son client et check ses derniers messages
+     * 
+     */
     console.log("the telegram engine is starting...")
-    let targetTelegramAccount = await TelegramAccountDAO.getById(phoneNumber);
-    // 1st: we make a request to DB to search if une session existe pour ce numéro
 
-    if(!targetTelegramAccount || targetTelegramAccount == null){
-        console.log("compte telegram non trouvé");
-        throw new Error("Le compte telegram n'as correspondant n'as pas été trouvé.");
-    }
-    // on suppose qu'ici le compte telegram est recupérré
+    const timingId = setInterval(async ()=>{
+        clientPool.forEach(async (clienPoolItem)=>{
+                    let result = await TelegramService.getLatestMessages(clienPoolItem.client, {
+                        chanels:  await MonitoredTargetDAO.getAllByProviderId(clienPoolItem.providerAccount.getId()),
+                        time: (360*60)
+                    });
 
+                    console.log("nombre de discussions du client telegram ", clienPoolItem.providerAccount.displayInfo() , " : ", result.length);
 
-    // on vas récupérer les canaux à monitorer:
-    let targetChanels = await MonitoredChanelDAO.getAllByPhoneNumber(targetTelegramAccount.getphoneNumber());
+                    console.log(result);
 
-
-    // 2nd: si elle existe, on vas essayer de logger avec telegram.service via sa session id.
-
-    // 
-    if(true){
-        let target = await TelegramService.connectClient(
-            new StringSession(targetTelegramAccount.getsession_string()), // session_string
-            encryptService.decryptData(targetTelegramAccount.getencryptedApiID()), // apiId déchiffré
-            encryptService.decryptData(targetTelegramAccount.getencryptedApiHash()) // apiHash déchifré
-        );
-        clientPool.push(target);
-
-        const timingId = setInterval(async ()=>{
-            for(let i=0; i<clientPool.length; i++){
-                let result = await TelegramService.getLatestMessages(clientPool[i], {
-                    chanels:  targetChanels,
-                    time: (360*60)
-                });
-
-                console.log("nombre de discussions du client telegram ", i , " : ", result.length);
-
-                console.log(result);
-
-
-            }
-        }, 10000);
-
-        return ()=>{clearInterval(timingId)};
-
-    }
-
-    return null;
-    // 3th: si ell n'existe pas, on vas créer un nouvel id de connection et stocker ses infos ( chanels à monitorer, compte, session telegram)
+        });
+    }, 10000);
+    
+    return ()=>{clearInterval(timingId)};
 }
 
 /**
