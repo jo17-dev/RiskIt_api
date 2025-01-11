@@ -29,8 +29,8 @@ router.get('/', (req, res)=>{
 });
 
 
-router.get('/pool/add', (req, res)=>{
-    telegramController.addClientToPool(1)
+router.get('/pool/add/:providerId', (req, res)=>{
+    telegramController.addClientToPool(parseInt(req.params.providerId))
     .then((value)=>{
         res.json({
             statusText: "OK",
@@ -40,7 +40,7 @@ router.get('/pool/add', (req, res)=>{
         res.json({
             statusText: "Failed",
             message: reason.message
-        })
+        });
     })
 });
 
