@@ -14,7 +14,7 @@ router.get('/pairs', (req, res)=>{
             res.json({
                 datas: value
             })
-            console.log("pairs récupéré")
+            console.log("pairs récupérées")
         }
     ).catch(
         (reason)=>{

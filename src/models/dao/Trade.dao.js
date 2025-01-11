@@ -1,91 +1,116 @@
-const Trade = require('../Trade.class');
+const requestor = require('../config/database.requestor');  // Assurez-vous de bien importer votre module requestor
+const Trade = require('../Trade.class');  // Assurez-vous que le modèle Trade est exporté
 
-const dataBaseRequestor = require('../config/database.requestor');
-
+/**
+ * Classe TradeDAO pour interagir avec la table `trades`.
+ */
 class TradeDAO {
-    static db;
-
-
-    static async add(type, tp, sl, position_price, marge){
-        // connexion à la DB
-        TradeDAO.db = Database.getInstance();
-
-        if (TradeDAO.db == null) {
-            throw new Error('La connexion à la base de données a échoué.');
-        }
-
-        try{
-            await TradeDAO.db.promise().query("INSERT INTO trades (type, tp, sl, position_price, marge), VALUES(?, ?, ?, ?)", [type, tp, sl, position_price ,marge])
-        }catch(err){
-            console.log("Erreur SQL: "+err.message);
-        }
+  /**
+   * Récupère tous les trades.
+   * @returns {Promise<Trade[]>} - Une promesse contenant une liste de trades.
+   */
+  static async getAll() {
+    try {
+      const [results] = await requestor.makeRequest('SELECT * FROM trades');
+      return results.map(trade => new Trade(
+        trade.id,
+        trade.trader_client_id,
+        trade.signal_id,
+        trade.amount_traded,
+        trade.marge,
+        trade.created_at,
+        trade.updated_at
+      ));
+    } catch (err) {
+      throw new Error('Erreur lors de la récupération des trades : ' + err.message);
     }
+  }
 
-    // Méthode pour récupérer un trade par son ID
-    static async searchById(id) {
-        // Connexion à la base de données
-        TradeDAO.db = Database.getInstance();
-
-        if (TradeDAO.db == null) {
-            throw new Error('La connexion à la base de données a échoué.');
-        }
-
-        try {
-            // Exécution de la requête SQL avec await
-            const [result] = await TradeDAO.db.promise().query('SELECT * FROM trades WHERE id = ?', [id]);
-            
-            // result est de type RowDataPacket[], donc on peut directement accéder aux lignes
-            const rows = result;
-
-            // Si aucun résultat, renvoyer null
-            if (rows.length === 0) {
-                return null;
-            }
-
-            // Supposons que le résultat contient un seul enregistrement
-            const row = rows[0]; // Prendre la première ligne (ou l'unique ligne)
-            const trade = new Trade(row.id, row.type, row.sl, row.tp, row.position_price ,row.marge); // Créer l'objet Trade
-
-            return trade; // Retourner l'objet Trade
-        } catch (err) {
-            console.error('Erreur SQL:', err.message);
-            throw err; // Rejeter l'erreur en cas de problème SQL
-        }
+  /**
+   * Récupère un trade par son ID.
+   * @param {number} id - L'ID du trade.
+   * @returns {Promise<Trade|null>} - Un trade ou null si non trouvé.
+   */
+  static async getById(id) {
+    try {
+      const [results] = await requestor.makeRequest('SELECT * FROM trades WHERE id = ?', [id]);
+      if (results.length > 0) {
+        const trade = results[0];
+        return new Trade(
+          trade.id,
+          trade.trader_client_id,
+          trade.signal_id,
+          trade.amount_traded,
+          trade.marge,
+          trade.created_at,
+          trade.updated_at
+        );
+      }
+      return null;  // Trade non trouvé
+    } catch (err) {
+      throw new Error('Erreur lors de la récupération du trade par ID : ' + err.message);
     }
+  }
 
-    // Méthode pour récupérer tous les trades
-    static async searchAll() {
-        let result = await dataBaseRequestor.makeRequest("SELECT * FROM trades");
-        return result[0]; 
+  /**
+   * Insère un nouveau trade.
+   * @param {Trade} trade - L'objet trade à insérer.
+   * @returns {Promise<number>} - L'ID du trade inséré.
+   */
+  static async create(trade) {
+    try {
+      const [result] = await requestor.makeRequest(
+        'INSERT INTO trades (trader_client_id, signal_id, amount_traded, marge, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
+        [
+          trade.getTraderClientId(),
+          trade.getSignalId(),
+          trade.getAmountTraded(),
+          trade.getMarge(),
+          trade.getCreatedAt(),
+          trade.getUpdatedAt()
+        ]
+      );
+      return result.insertId;  // ID du trade inséré
+    } catch (err) {
+      throw new Error('Erreur lors de l\'insertion du trade : ' + err.message);
     }
+  }
 
-    // Méthode pour mettre à jour un trade
-    /**
-     * 
-     * @param {nteger} id id du trade 
-     * @param {Trade} target  trade à update
-     */
-    static async update(id, target) {
-        // Connexion à la base de données
-        TradeDAO.db = Database.getInstance();
-
-        if (TradeDAO.db == null) {
-            throw new Error('La connexion à la base de données a échoué.');
-        }
-
-        try {
-            // Exécution de la requête SQL avec await pour la mise à jour
-            await TradeDAO.db.promise().query(
-                'UPDATE trades SET type = ?, sl = ?, tp = ?, marge = ? WHERE id = ?',
-                [target.getType(), target.getSl(), target.getTp(), target.getMarge(), id]
-            );
-
-            console.log(`Trade avec ID ${id} mis à jour avec succès.`);
-        } catch (err) {
-            console.error('Erreur SQL lors de la mise à jour:', err.message);
-            throw err; // Rejeter l'erreur en cas de problème SQL
-        }
+  /**
+   * Met à jour un trade.
+   * @param {Trade} trade - L'objet trade à mettre à jour.
+   * @returns {Promise<void>} - Une promesse vide.
+   */
+  static async update(trade) {
+    try {
+      await requestor.makeRequest(
+        'UPDATE trades SET trader_client_id = ?, signal_id = ?, amount_traded = ?, marge = ?, updated_at = ? WHERE id = ?',
+        [
+          trade.getTraderClientId(),
+          trade.getSignalId(),
+          trade.getAmountTraded(),
+          trade.getMarge(),
+          trade.getUpdatedAt(),
+          trade.getId()
+        ]
+      );
+    } catch (err) {
+      throw new Error('Erreur lors de la mise à jour du trade : ' + err.message);
     }
+  }
+
+  /**
+   * Supprime un trade.
+   * @param {number} id - L'ID du trade à supprimer.
+   * @returns {Promise<void>} - Une promesse vide.
+   */
+  static async delete(id) {
+    try {
+      await requestor.makeRequest('DELETE FROM trades WHERE id = ?', [id]);
+    } catch (err) {
+      throw new Error('Erreur lors de la suppression du trade : ' + err.message);
+    }
+  }
 }
 
 module.exports = TradeDAO;
