@@ -107,6 +107,29 @@ class MonitoredTargetDAO {
       throw new Error('Erreur lors de la suppression du target : ' + err.message);
     }
   }
+
+
+  /**
+   * récupere l'ensemble des discussions appartenant à un "provider account"
+   * @param {number} id
+   * @returns {Promise<MonitoredTarget[]>} la liste des cibles (chanels) à monitorer pour un "provider account"
+   */
+  static async getAllByProviderId(id) {
+    try{
+      let [result] = await requestor.makeRequest('SELECT * FROM monitored_targets WHERE id_provider_account = ?', [id]);
+      return result.map(target => new MonitoredTarget(
+        target.id,
+        target.id_provider_account,
+        target.target_name,
+        target.others,
+        target.created_at,
+        target.updated_at
+      ));
+
+    }catch(err){
+      throw new Error('Erreur lors de la rechercher des targets appartenant à un provider ID: ', id);
+    }
+  }
 }
 
 module.exports = MonitoredTargetDAO;
