@@ -9,6 +9,7 @@ const MonitoredTargetDAO = require('../models/dao/MonitoredTarget.dao');
 
 const encryptService = require('../services/encrypt.service');
 const { TelegramClient} = require('telegram');
+const SignalDAO = require('../models/dao/Signal.dao');
 
 
 /**
@@ -39,9 +40,9 @@ const startEngine = async ()=>{
             });
 
             // 2nd on boucle sur chaque message de chaque discussions pour interpreter chacun des message en signal via le servide signalInterpret.service.js
-            result.forEach((item)=>{
+            result.forEach(async (item)=>{
                 // console.log(item.monitoredTarget);
-                item.messages.forEach((messageItem)=>{
+                item.messages.forEach(async (messageItem)=>{
                     // console.log(messageItem, " -- longeur: ", messageItem.length);
                     let interpretedSignal = signalInterpretationService.retreiveSignalFromTextV1(messageItem, item.monitoredTarget.getId());
 
@@ -49,6 +50,7 @@ const startEngine = async ()=>{
                         console.log(interpretedSignal.displayInfo());
                         console.log("message interprete avec succcess");
                         // enregistrement dans la data base
+                        await SignalDAO.create(interpretedSignal);
                     }else{
                         console.log("ce message n'était pas un signal");
                     }
