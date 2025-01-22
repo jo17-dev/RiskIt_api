@@ -1,3 +1,4 @@
+USE risk_it;
 -- Ajouter des utilisateurs
 INSERT INTO users (name, email, password)
 VALUES 
@@ -21,14 +22,16 @@ VALUES
 INSERT INTO monitored_targets (id_provider_account, target_name, others)
 VALUES 
 (1, 'Crypto Space VIP', '{"type": "chanel", "signal_type": "crypto"}'),
+(1, 'Bob', '{"type": "discussion", "signal_type": "none hahah"}'),
 (1, 'TFXC SIGNALS', '{"type": "chanel", "signal_type": "forex"}'),
 (2, 'professeur signales hahah', '{"type": "direct-messages", "signal_type": "crypto"}');
 
 -- Ajouter des signaux
-INSERT INTO signals (id_monitored_target, pair,tp, sl, entry_upper_born, entry_lower_born)
+INSERT INTO signals (id_monitored_target, pair,tp, sl, entry_upper_born, entry_lower_born, parent)
 VALUES 
-(1, 'ZEN/USDT' ,1.20, 1.10, 1.25, 1.05),  -- Signal pour Crypto Space VIP
-(2, 'FCFA/USD' ,50.00, 45.00, 55.00, 40.00);  -- Signal provenant de 'professeur signals hahaha'
+(1, 'ZEN/USDT' ,1.20, 1.10, 1.12, 1.05, NULL),  -- Signal pour Crypto Space VIP
+(1, 'ZEN/USDT' ,1.20, 1.12, 1.25, 1.05, NULL),  -- Signal pour Crypto Space VIP
+(2, 'FCFA/USD' ,50.00, 45.00, 55.00, 40.00, NULL);  -- Signal provenant de 'professeur signals hahaha'
 
 -- Ajouter des trades
 INSERT INTO trades (id_trader_client, id_signal, amount_traded, marge)

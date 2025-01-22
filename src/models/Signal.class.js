@@ -7,6 +7,7 @@
  * @property {number} sl - Le Stop Loss (SL) du signal.
  * @property {number} entryUpperBorn - La borne supérieure pour l'entrée (peut être null).
  * @property {number} entryLowerBorn - La borne inférieure pour l'entrée (peut être null).
+ * @property {number} parent - le signal parent auquel il est affilié (devrai etre d'ordre contraire à la base)
  * @property {Date} createdAt - La date de création du signal.
  * @property {Date} updatedAt - La date de mise à jour du signal.
  */
@@ -20,10 +21,11 @@ class Signal {
      * @param {number} sl - Le Stop Loss du signal.
      * @param {number} entryUpperBorn - La borne supérieure pour l'entrée.
      * @param {number} entryLowerBorn - La borne inférieure pour l'entrée.
+     * @param {number | null} parent - Le signal au quel ce signal est affilié - facultatif
      * @param {Date} createdAt - La date de création.
      * @param {Date} updatedAt - La date de mise à jour.
      */
-    constructor(id, monitoredTargetId, pair ,tp, sl, entryUpperBorn, entryLowerBorn, createdAt, updatedAt) {
+    constructor(id, monitoredTargetId, pair ,tp, sl, entryUpperBorn, entryLowerBorn, parent ,createdAt, updatedAt) {
       this.#id = id;
       this.#monitoredTargetId = monitoredTargetId;
       this.#pair = pair;
@@ -31,6 +33,7 @@ class Signal {
       this.#sl = sl;
       this.#entryUpperBorn = entryUpperBorn;
       this.#entryLowerBorn = entryLowerBorn;
+      this.#parent = parent;
       this.#createdAt = createdAt;
       this.#updatedAt = updatedAt;
     }
@@ -43,6 +46,7 @@ class Signal {
     #sl;
     #entryUpperBorn;
     #entryLowerBorn;
+    #parent;
     #createdAt;
     #updatedAt;
   
@@ -74,6 +78,10 @@ class Signal {
     getEntryLowerBorn() {
       return this.#entryLowerBorn;
     }
+
+    getParent() {
+      return this.#parent;
+    }
   
     getCreatedAt() {
       return this.#createdAt;
@@ -86,6 +94,10 @@ class Signal {
     // Setters
     setId(value) {
       this.#id = value;
+    }
+
+    setParent(value) {
+      this.#parent = value;
     }
   
     setMonitoredTargetId(value) {
@@ -125,7 +137,7 @@ class Signal {
      * @returns {string} - Retourne les détails du signal.
      */
     displayInfo() {
-      return `Signal [${this.#id}]: Pair=${this.#pair} TP = ${this.#tp}, SL = ${this.#sl},`;
+      return `Signal [${this.#id}]: Pair=${this.#pair} TP = ${this.#tp}, SL = ${this.#sl}, parent= ${this.#parent}`;
     }
   }
   

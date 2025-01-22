@@ -37,7 +37,7 @@ function retreiveSignalFromTextV1(message, monitored_target_id) {
     const leverage = leverageMatch ? leverageMatch[1].replace('x', '') : null;
 
     if(pair && type && takeProfits ){
-        return new Signal(null, monitored_target_id, pair ,takeProfits[0], stopLoss, entryPrice, entryPrice, Date.now(), Date.now());
+        return new Signal(null, monitored_target_id, pair ,takeProfits[0], stopLoss, entryPrice, entryPrice, null ,Date.now(), Date.now());
     }else{
         return null;
     }
