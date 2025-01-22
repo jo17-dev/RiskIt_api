@@ -88,9 +88,6 @@ const getLatestMessages = async (client, {chanels=[], time=(10*60*1000), numberO
         });
     }
 
-
-    console.log("/////// nombre de messages au total: ", result.length);
-
     return result;
 
 }

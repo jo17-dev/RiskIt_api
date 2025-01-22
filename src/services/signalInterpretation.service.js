@@ -5,11 +5,11 @@ const Signal = require("../models/Signal.class");
 
 
 /**
- * Extrait les informations d'un signal de trading à partir d'un message de signal.
- *
+ * Extrait les de trading à partir d'un message de signal.
+ * Il renvoie un ensemble de signaux lié à celui-ci
  * @param {string} message - Le message du signal de trading contenant les informations à extraire.
- * @param {number} monitored_target_id l'id du compte de provenenance dans la db 
- * @returns {Signal | null} Un objet contenant les données extraites du signal de trading.
+ * @param {number} monitored_target_id l'id du compte de provenance dans la db 
+ * @returns {Array<Signal | null>} Un tableau contenant les données extraites du signal de trading.
  */
 function retreiveSignalFromTextV1(message, monitored_target_id) {
     // Extraction de la paire de trading (exemple: #XVS/USDT)
@@ -26,7 +26,7 @@ function retreiveSignalFromTextV1(message, monitored_target_id) {
 
     // Extraction des Take profits (tous les 🚀 suivis de nombres)
     const takeProfitMatches = message.match(/🚀(\d+(\.\d+)?)/g);
-    const takeProfits = takeProfitMatches ? takeProfitMatches.map(val => parseFloat(val.replace('🚀', ''))) : null;
+    const takeProfits = takeProfitMatches ? takeProfitMatches.map(val => parseFloat(val.replace('🚀', ''))) : [];
 
     // Extraction du Stop loss (⛔ suivi d'un nombre)
     const stopLossMatch = message.match(/⛔\s*STOP\s*LOSS:\s*(\d+(\.\d+)?)/);
@@ -36,13 +36,50 @@ function retreiveSignalFromTextV1(message, monitored_target_id) {
     const leverageMatch = message.match(/Leverage\s*:\s*(\d+x)/);
     const leverage = leverageMatch ? leverageMatch[1].replace('x', '') : null;
 
-    if(pair && type && takeProfits ){
-        return new Signal(null, monitored_target_id, pair ,takeProfits[0], stopLoss, entryPrice, entryPrice, null ,Date.now(), Date.now());
-    }else{
-        return null;
+    const result = [];
+
+    // Si les données essentielles sont présentes, créer le signal
+    if (pair && type && entryPrice && takeProfits.length > 0 && stopLoss !== null) {
+        // On crée un signal avec les informations extraites
+
+        const date = Date.now();
+        // premier signal correspondant
+        result.push(
+            new Signal(
+                null,
+                monitored_target_id,
+                pair,
+                takeProfits[0],
+                stopLoss,
+                entryPrice,
+                entryPrice,
+                null,
+                date,
+                date
+            )
+        )
+
+        // les signaux pour les autres TP sont mappés
+        for(let i=1; i<takeProfits.length; i++){
+            result.push(
+                new Signal(
+                    null,
+                    monitored_target_id,
+                    pair,
+                    takeProfits[i],
+                    takeProfits[i-1],
+                    takeProfits[i-1],
+                    takeProfits[i-1],
+                    null,
+                    date,
+                    date
+                )
+            )
+        }
+        return result;
+    } else {
+        return [];
     }
-
 }
-
 
 module.exports = {retreiveSignalFromTextV1}

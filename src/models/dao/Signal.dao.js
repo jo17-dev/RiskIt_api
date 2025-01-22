@@ -68,9 +68,10 @@ class SignalDAO {
   static async create(signal) {
     try {
       const [result] = await requestor.makeRequest(
-        'INSERT INTO signals (monitored_target_id, tp, sl, entry_upper_born, entry_lower_born, parent ,created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO signals (monitored_target_id, pair, tp, sl, entry_upper_born, entry_lower_born, parent ,created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
         [
           signal.getMonitoredTargetId(),
+          signal.getpair(),
           signal.getTp(),
           signal.getSl(),
           signal.getEntryUpperBorn(),
@@ -94,9 +95,10 @@ class SignalDAO {
   static async update(signal) {
     try {
       await requestor.makeRequest(
-        'UPDATE signals SET monitored_target_id = ?, tp = ?, sl = ?, entry_upper_born = ?, entry_lower_born = ?, updated_at = ? WHERE id = ?',
+        'UPDATE signals SET monitored_target_id = ?, pair ,tp = ?, sl = ?, entry_upper_born = ?, entry_lower_born = ?, updated_at = ? WHERE id = ?',
         [
           signal.getMonitoredTargetId(),
+          signal.getpair(),
           signal.getTp(),
           signal.getSl(),
           signal.getEntryUpperBorn(),

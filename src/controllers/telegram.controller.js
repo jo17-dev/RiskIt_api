@@ -46,9 +46,13 @@ const startEngine = async ()=>{
                     // console.log(messageItem, " -- longeur: ", messageItem.length);
                     let interpretedSignal = signalInterpretationService.retreiveSignalFromTextV1(messageItem, item.monitoredTarget.getId());
 
-                    if(interpretedSignal != null){
-                        console.log(interpretedSignal.displayInfo());
-                        console.log("message interprete avec succcess");
+                    if(interpretedSignal.length > 0){
+                        console.log("message actuel interpreté avec succcess. ", interpretedSignal.length, " signaux cumulés trouvés");
+                        
+                        for(let i=0; i< interpretedSignal.length; i++){
+                            console.log("||| signal ||||");
+                            console.log(interpretedSignal[i].displayInfo());
+                        }
                         // enregistrement dans la data base
                         await SignalDAO.create(interpretedSignal);
                     }else{
