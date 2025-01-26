@@ -1,4 +1,5 @@
 // fichier de toutes les fonctions relatives à l'api de kucoin
+// OUIIII je saiiit les fonctions du service ne sont pas factorisées DU TOUT HAHAHA
 const { default: axios } = require('axios');
 const Signal = require('../models/Signal.class');
 const TraderAgent = require('../models/TraderAgent.class');
@@ -14,9 +15,9 @@ const TradeType = {
 }
 
 /**
- * @type {{GET: string, POST: string}}
+ * @type {{GET: string, POST: string, DELETE: string}}
  */
-const HttpMethod = {GET: "GET", POST: "POST"};
+const HttpMethod = {GET: "GET", POST: "POST", DELETE: "DELETE"};
 
 
 const kucoinApiUrl = process.env.KUCOIN_FUTURES_URL.toString(); // complete endpoint
@@ -135,29 +136,120 @@ const makeOrder = async (signal, traderAgent, executeNow=false)=>{
     return response?.data;
 }
 
+
+/**
+ * Annuler tous les ordres d'une paire.
+ * @param {string} pair - format AAS/UROI 
+ * @param {TraderAgent} traderAgent - format trader agent
+ */
+const cancelAllFutureOrdersByPair = async (pair, traderAgent)=>{
+    const targetPair = convertSignalPairToKucoinPair(pair, TradeType.future);
+
+    const apiKey= encryptService.decryptData(traderAgent.getCredentials().api_key);
+    const apiVersion = traderAgent.getCredentials().api_version;
+    const body = {};
+    const timestamp = Date.now();
+    let endpoint = "/api/v3/orders?symbol="+targetPair;
+    const method = HttpMethod.DELETE;
+    const signedPassPhrase = sha256_hashMac_hash(
+        encryptService.decryptData(traderAgent.getCredentials().secret_key),
+        encryptService.decryptData(traderAgent.getCredentials().passPhrase)
+    )
+    let signedBody = signBody(
+        body,
+        encryptService.decryptData(traderAgent.getCredentials().secret_key),
+        {
+            method: method,
+            endpoint: endpoint,
+            timestamp: timestamp
+        }
+    );
+
+    // console.log("targetpairs:", targetPair)
+
+    // non stop orders request
+    const response1 = await axios.request({
+        url: kucoinApiUrl+endpoint,
+        method: method,
+        headers:{
+            "Content-Type": "application/json",
+            "KC-API-KEY": apiKey,
+            "KC-API-SIGN": signedBody,
+            "KC-API-TIMESTAMP": timestamp,
+            "KC-API-PASSPHRASE": signedPassPhrase,
+            "KC-API-KEY-VERSION": apiVersion
+        },
+        data: body
+    });
+
+    // resignature du body pour la requette des ordres stops
+
+    
+    endpoint = "/api/v1/stopOrders?symbol="+targetPair;
+    signedBody = signBody(
+        body,
+        encryptService.decryptData(traderAgent.getCredentials().secret_key),
+        {
+            method: method,
+            endpoint: endpoint,
+            timestamp: timestamp
+        }
+    );
+
+    // stop orders
+    const response2 = await axios.request({
+        url: kucoinApiUrl+ endpoint,
+        method: method,
+        headers:{
+            "Content-Type": "application/json",
+            "KC-API-KEY": apiKey,
+            "KC-API-SIGN": signedBody,
+            "KC-API-TIMESTAMP": timestamp,
+            "KC-API-PASSPHRASE": signedPassPhrase,
+            "KC-API-KEY-VERSION": apiVersion
+        },
+        data: body
+    });
+    
+    return {
+        nonStopOders: response1,
+        stopOders: response2
+    };
+}
+
+
+
 /**
  * 
  * @param {TraderAgent} traderAgent 
  * @returns 
  */
 const getAllActiveOrders = async (traderAgent)=>{
-    const endpoint= "/api/v1/orders?status=active";
+    const endpoint= "/api/v1/orders";
+    const urlParams = "?status=active";
+    const timestamp = Date.now();
 
-    // const apiKey= encryptService.decryptData(traderAgent.getCredentials().api_key);
-    // const apiVersion = traderAgent.getCredentials().api_version;
+    const apiKey= encryptService.decryptData(traderAgent.getCredentials().api_key);
+    const apiVersion = traderAgent.getCredentials().api_version;
 
-    // const response = await axios.request({
-    //     url: kucoinApiUrl + endpoint,
-    //     method: HttpMethod.GET,
-    //     headers: {
-    //         "Content-Type": "application/json",
-    //         "KC-API-KEY": apiKey,
-    //         "KC-API-TIMESTAMP": Date.now().toString(),
-    //         "KC-API-KEY-VERSION": apiVersion
-    //     }
-    // });
+    const signedPassPhrase = sha256_hashMac_hash(
+        encryptService.decryptData(traderAgent.getCredentials().secret_key),
+        encryptService.decryptData(traderAgent.getCredentials().passPhrase)
+    )
 
-    // console.log(response);
+
+    const response = await axios.request({
+        url: kucoinApiUrl + endpoint + urlParams,
+        method: HttpMethod.GET,
+        headers:{
+            "Content-Type": "application/json",
+            "KC-API-KEY": apiKey,
+            "KC-API-SIGN": signedBody,
+            "KC-API-TIMESTAMP": timestamp,
+            "KC-API-PASSPHRASE": signedPassPhrase,
+            "KC-API-KEY-VERSION": apiVersion
+        },
+    });
 
     return response?.data;
 }
@@ -191,6 +283,7 @@ const makeMarketOrder = (signal)=>{
 
 
 module.exports = {
+    cancelAllFutureOrdersByPair,
     convertSignalPairToKucoinPair,
     makeOrder,
     getAllActiveOrders
