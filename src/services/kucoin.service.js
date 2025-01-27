@@ -5,6 +5,7 @@ const Signal = require('../models/Signal.class');
 const TraderAgent = require('../models/TraderAgent.class');
 const encryptService = require('../services/encrypt.service');
 const crypto = require('crypto');
+const { Socket, io} = require('socket.io-client');
 require('dotenv').config();
 /**
  * @type {{future: strinng, spot:string}} 
@@ -21,6 +22,7 @@ const HttpMethod = {GET: "GET", POST: "POST", DELETE: "DELETE"};
 
 
 const kucoinApiUrl = process.env.KUCOIN_FUTURES_URL.toString(); // complete endpoint
+const kucoinWSSUrl = process.env.KUCOIN_FUTURES_WSS_URL.toString();
 
 
 /**
@@ -254,6 +256,81 @@ const getAllActiveOrders = async (traderAgent)=>{
     return response?.data;
 }
 
+/**
+ * créer un nouveau token public pour l'acces websocket secured
+ * @param {TraderAgent} traderAgent 
+ */
+const createNewWSSToken = async (traderAgent)=>{
+    const endpoint = "/api/v1/bullet-public";
+    const body ={};
+
+    const timestamp = Date.now();
+    const method = HttpMethod.POST;
+    const signedPassPhrase = sha256_hashMac_hash(
+        encryptService.decryptData(traderAgent.getCredentials().secret_key),
+        encryptService.decryptData(traderAgent.getCredentials().passPhrase)
+    )
+
+    const signedBody = signBody(body, 
+        encryptService.decryptData(traderAgent.getCredentials().secret_key),
+        {
+            method: method,
+            endpoint: endpoint,
+            timestamp: timestamp
+        }
+    )
+
+    const apiKey= encryptService.decryptData(traderAgent.getCredentials().api_key);
+    const apiVersion = traderAgent.getCredentials().api_version;
+
+    const response = await axios.request({
+        url: kucoinApiUrl+endpoint,
+        method: method,
+        headers:{
+            "Content-Type": "application/json",
+            "KC-API-KEY": apiKey,
+            "KC-API-SIGN": signedBody,
+            "KC-API-TIMESTAMP": timestamp,
+            "KC-API-PASSPHRASE": signedPassPhrase,
+            "KC-API-KEY-VERSION": apiVersion
+        },
+        data: body
+    });
+
+    return response?.data;
+}
+
+
+/**
+ * Écouter dans la branche pucli
+ * @param {TraderAgent} traderAgent 
+ * @returns {Socket<DefaultEventsMap, DefaultEventsMap>} l'object pour manipuler la connexion
+ */
+const listenWSS = (traderAgent)=>{
+    const endpoint = "/?token="+traderAgent.getCredentials().wss_token + "&connectId="+ traderAgent.getId();
+    const socket = io(kucoinWSSUrl + endpoint);
+
+    socket.on("connect", ()=>{
+        console.log("The user is connected");
+    });
+    socket.connect();
+
+    return socket;
+}
+
+/**
+ * 
+ * @param {Socket<DefaultEventsMap, DefaultEventsMap>} targetSocket socket à télécharger 
+ * @returns {boolean} si la socket cible a bien été déconnecté ou pas.
+ */
+const closeWSS = (targetSocket)=>{
+    if(targetSocket != null){
+        targetSocket.disconnect();
+        return targetSocket.disconnected;
+    }else{
+        return false;
+    }
+}
 
 /**
  * @param {Signal} signal dont on veut déterminer le rsique limite de la pair
@@ -271,20 +348,12 @@ const getLimitRisk = async (signal)=>{
 }
 
 
-
-/**
- * créer un ordre via un signal
- * @param {Signal} signal 
- * @returns {boolean}
- */
-const makeMarketOrder = (signal)=>{
-    
-}
-
-
 module.exports = {
     cancelAllFutureOrdersByPair,
     convertSignalPairToKucoinPair,
     makeOrder,
-    getAllActiveOrders
+    getAllActiveOrders,
+    createNewWSSToken,
+    listenWSS,
+    closeWSS
 }
