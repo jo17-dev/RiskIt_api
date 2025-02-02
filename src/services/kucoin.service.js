@@ -5,7 +5,6 @@ const Signal = require('../models/Signal.class');
 const TraderAgent = require('../models/TraderAgent.class');
 const encryptService = require('../services/encrypt.service');
 const crypto = require('crypto');
-const { Socket, io} = require('socket.io-client');
 require('dotenv').config();
 /**
  * @type {{future: strinng, spot:string}} 
@@ -78,10 +77,10 @@ const signBody = (body ,secretKey, othersToAddInSignature)=>{
 /**
  * Faire un ordre avec kucoin
  * @param {Signal} signal le signal à executer
- * @param {boolean} executeNow defaut: false - si on execute l'ordre avec le prix du marché ou pas.
+ * @param {boolean} executeNow defaut: true - si on execute l'ordre avec le prix du marché ou pas.
  * @param {TraderAgent} traderAgent 
  */
-const makeOrder = async (signal, traderAgent, executeNow=false)=>{
+const makeOrder = async (signal, traderAgent, executeNow=true)=>{
     // OK ici tous les ordres vont êtres stop - limite. pour les ordre market, les borndes d'entrés >0 so ça a vas directement exécutéer et donc simuler le market
     const endpoint = "/api/v1/st-orders";
     const tradeAmount = 5;
@@ -92,13 +91,85 @@ const makeOrder = async (signal, traderAgent, executeNow=false)=>{
         symbol: convertSignalPairToKucoinPair(signal.getpair()),
         leverage: 10,
         type: executeNow ? "market":"limit",
-        price: (signal.getTp() > signal.getSl() && !executeNow) ? signal.getEntryUpperBorn().toString() : signal.getEntryLowerBorn().toString(),
         valueQty: tradeAmount.toString(),
         stop: signal.getTp() > signal.getSl() ? "down" : "up",
         stopPriceType: "TP",
         triggerStopUpPrice: signal.getTp().toString(),
         triggerStopDownPrice: signal.getSl().toString()
     };
+
+    if(body.type == "limit"){
+        body.price = (signal.getTp() > signal.getSl() && !executeNow) ? signal.getEntryUpperBorn().toString() : signal.getEntryLowerBorn().toString();
+    }
+
+    const timestamp = Date.now();
+    const method = HttpMethod.POST;
+    const signedPassPhrase = sha256_hashMac_hash(
+        encryptService.decryptData(traderAgent.getCredentials().secret_key),
+        encryptService.decryptData(traderAgent.getCredentials().passPhrase)
+    )
+
+    const signedBody = signBody(body, 
+        encryptService.decryptData(traderAgent.getCredentials().secret_key),
+        {
+            method: method,
+            endpoint: endpoint,
+            timestamp: timestamp
+        }
+    )
+
+    const apiKey= encryptService.decryptData(traderAgent.getCredentials().api_key);
+    const apiVersion = traderAgent.getCredentials().api_version;
+
+    const response = await axios.request({
+        url: kucoinApiUrl+endpoint,
+        method: method,
+        headers:{
+            "Content-Type": "application/json",
+            "KC-API-KEY": apiKey,
+            "KC-API-SIGN": signedBody,
+            "KC-API-TIMESTAMP": timestamp,
+            "KC-API-PASSPHRASE": signedPassPhrase,
+            "KC-API-KEY-VERSION": apiVersion
+        },
+        data: body
+    });
+
+    // const response = await getLimitRisk(signal);
+
+    return response?.data;
+}
+
+
+/**
+ * Placer un ordre "Take profit"
+ * @param {Signal} signal le signal à executer le type TP est particulier en ceci qu'il vas inverser les buy/sell pour que ça corresponde prise de profit effective
+ * @param {TraderAgent} traderAgent l'agent de trading kucoin qui vas faire le trade
+ * @param {boolean} reduceOnly default: true - determine is les ordre sont ceux de tp uniquement
+ */
+const makeTpOrder = async (signal, traderAgent, reduceOnly=true)=>{
+    // OK ici tous les ordres vont êtres stop - limite. pour les ordre market, les borndes d'entrés >0 so ça a vas directement exécutéer et donc simuler le market
+    const endpoint = "/api/v1/st-orders";
+    const tradeAmount = 3;
+
+    const body =  
+    {
+        clientOid: signal.getId().toString(),
+        side: signal.getTp() > signal.getSl() ? "sell" : "buy",
+        symbol: convertSignalPairToKucoinPair(signal.getpair()),
+        leverage: 10,
+        type: "limit",
+        valueQty: tradeAmount.toString(),
+        stop: signal.getTp() > signal.getSl() ? "up" : "down",
+        stopPriceType: "TP",
+        reduceOnly: reduceOnly,
+        triggerStopUpPrice: signal.getSl().toString(),
+        triggerStopDownPrice: signal.getTp().toString()
+    };
+
+    if(body.type == "limit"){
+        body.price = (signal.getTp() > signal.getSl()) ? signal.getEntryUpperBorn().toString() : signal.getEntryLowerBorn().toString();
+    }
 
     const timestamp = Date.now();
     const method = HttpMethod.POST;
@@ -302,31 +373,29 @@ const createNewWSSToken = async (traderAgent)=>{
 
 
 /**
- * Écouter dans la branche pucli
+ * Écouter dans la branche public
  * @param {TraderAgent} traderAgent 
- * @returns {Socket<DefaultEventsMap, DefaultEventsMap>} l'object pour manipuler la connexion
+ * @returns {WebSocket} l'object pour manipuler la connexion
  */
-const listenWSS = (traderAgent)=>{
-    const endpoint = "/?token="+traderAgent.getCredentials().wss_token + "&connectId="+ traderAgent.getId();
-    const socket = io(kucoinWSSUrl + endpoint);
+const listenWSS = async (traderAgent)=>{
+    const endpoint = "?token="+traderAgent.getCredentials().wss_token + "&connectId="+ traderAgent.getId();
+    const socket = new WebSocket(kucoinWSSUrl+endpoint);
 
-    socket.on("connect", ()=>{
-        console.log("The user is connected");
-    });
-    socket.connect();
-
+    socket.onopen = (ev)=>{
+        
+    }
     return socket;
 }
 
 /**
  * 
- * @param {Socket<DefaultEventsMap, DefaultEventsMap>} targetSocket socket à télécharger 
+ * @param {WebSocket} targetSocket socket à télécharger 
  * @returns {boolean} si la socket cible a bien été déconnecté ou pas.
  */
 const closeWSS = (targetSocket)=>{
     if(targetSocket != null){
-        targetSocket.disconnect();
-        return targetSocket.disconnected;
+        targetSocket.close();
+        return targetSocket.readyState == targetSocket.CLOSED;
     }else{
         return false;
     }
@@ -352,6 +421,7 @@ module.exports = {
     cancelAllFutureOrdersByPair,
     convertSignalPairToKucoinPair,
     makeOrder,
+    makeTpOrder,
     getAllActiveOrders,
     createNewWSSToken,
     listenWSS,
