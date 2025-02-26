@@ -12,13 +12,18 @@ class SignalDAO {
   static async getAll() {
     try {
       const [results] = await requestor.makeRequest('SELECT * FROM signals');
+
+      console.log("resul 0:", results[0]);
+
       return results.map(signal => new Signal(
         signal.id,
         signal.monitored_target_id,
+        signal.pair,
         signal.tp,
         signal.sl,
         signal.entry_upper_born,
         signal.entry_lower_born,
+        signal.parent || null,
         signal.created_at,
         signal.updated_at
       ));
@@ -44,6 +49,7 @@ class SignalDAO {
           signal.sl,
           signal.entry_upper_born,
           signal.entry_lower_born,
+          signal?.parent ?? null ? null : signal.parent,
           signal.created_at,
           signal.updated_at
         );
@@ -62,15 +68,15 @@ class SignalDAO {
   static async create(signal) {
     try {
       const [result] = await requestor.makeRequest(
-        'INSERT INTO signals (monitored_target_id, tp, sl, entry_upper_born, entry_lower_born, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO signals (id_monitored_target, pair, tp, sl, entry_upper_born, entry_lower_born, parent) VALUES (?, ?, ?, ?, ?, ?, ?)',
         [
-          signal.getMonitoredTargetId(),
+          signal.getMonitoredTargetId() ,
+          signal.getpair(),
           signal.getTp(),
           signal.getSl(),
           signal.getEntryUpperBorn(),
           signal.getEntryLowerBorn(),
-          signal.getCreatedAt(),
-          signal.getUpdatedAt()
+          signal.getParent()
         ]
       );
       return result.insertId;  // ID du signal inséré
@@ -87,14 +93,17 @@ class SignalDAO {
   static async update(signal) {
     try {
       await requestor.makeRequest(
-        'UPDATE signals SET monitored_target_id = ?, tp = ?, sl = ?, entry_upper_born = ?, entry_lower_born = ?, updated_at = ? WHERE id = ?',
+        'UPDATE signals SET monitored_target_id = ?, pair ,tp = ?, sl = ?, entry_upper_born = ?, entry_lower_born = ?, updated_at = ? WHERE id = ?',
         [
           signal.getMonitoredTargetId(),
+          signal.getpair(),
           signal.getTp(),
           signal.getSl(),
           signal.getEntryUpperBorn(),
           signal.getEntryLowerBorn(),
-          signal.getUpdatedAt(),
+          signal.getParent(),
+          // signal.getUpdatedAt(),
+          Date.now(),
           signal.getId()
         ]
       );

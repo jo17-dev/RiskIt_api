@@ -21,6 +21,7 @@ app.use((req, res, next)=>{
 app.use("/history", require('./src/routes/history.routes'));
 app.use("/lbank", require("./src/routes/lbank.routes"));
 app.use("/telegram", require("./src/routes/telegram.routes"));
+app.use('/kucoin', require('./src/routes/kucoin.route'));
 
 httpServer.listen(port, ()=>{
     console.log("server started on port ", port);

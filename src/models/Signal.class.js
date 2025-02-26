@@ -7,6 +7,7 @@
  * @property {number} sl - Le Stop Loss (SL) du signal.
  * @property {number} entryUpperBorn - La borne supérieure pour l'entrée (peut être null).
  * @property {number} entryLowerBorn - La borne inférieure pour l'entrée (peut être null).
+ * @property {number} parent - le signal parent auquel il est affilié (devrai etre d'ordre contraire à la base)
  * @property {Date} createdAt - La date de création du signal.
  * @property {Date} updatedAt - La date de mise à jour du signal.
  */
@@ -15,20 +16,24 @@ class Signal {
      * Crée une instance d'un signal de trading.
      * @param {number} id - L'ID unique du signal.
      * @param {number} monitoredTargetId - L'ID de la cible surveillée associée au signal.
+     * @param {string} pair - La pair concernée
      * @param {number} tp - Le Take Profit du signal.
      * @param {number} sl - Le Stop Loss du signal.
      * @param {number} entryUpperBorn - La borne supérieure pour l'entrée.
      * @param {number} entryLowerBorn - La borne inférieure pour l'entrée.
+     * @param {number | null} parent - Le signal au quel ce signal est affilié - facultatif
      * @param {Date} createdAt - La date de création.
      * @param {Date} updatedAt - La date de mise à jour.
      */
-    constructor(id, monitoredTargetId, tp, sl, entryUpperBorn, entryLowerBorn, createdAt, updatedAt) {
+    constructor(id, monitoredTargetId, pair ,tp, sl, entryUpperBorn, entryLowerBorn, parent ,createdAt, updatedAt) {
       this.#id = id;
       this.#monitoredTargetId = monitoredTargetId;
+      this.#pair = pair;
       this.#tp = tp;
       this.#sl = sl;
       this.#entryUpperBorn = entryUpperBorn;
       this.#entryLowerBorn = entryLowerBorn;
+      this.#parent = parent;
       this.#createdAt = createdAt;
       this.#updatedAt = updatedAt;
     }
@@ -36,10 +41,12 @@ class Signal {
     // Propriétés privées
     #id;
     #monitoredTargetId;
+    #pair;
     #tp;
     #sl;
     #entryUpperBorn;
     #entryLowerBorn;
+    #parent;
     #createdAt;
     #updatedAt;
   
@@ -50,6 +57,10 @@ class Signal {
   
     getMonitoredTargetId() {
       return this.#monitoredTargetId;
+    }
+
+    getpair(){
+      return this.#pair;
     }
   
     getTp() {
@@ -67,6 +78,10 @@ class Signal {
     getEntryLowerBorn() {
       return this.#entryLowerBorn;
     }
+
+    getParent() {
+      return this.#parent;
+    }
   
     getCreatedAt() {
       return this.#createdAt;
@@ -80,9 +95,17 @@ class Signal {
     setId(value) {
       this.#id = value;
     }
+
+    setParent(value) {
+      this.#parent = value;
+    }
   
     setMonitoredTargetId(value) {
       this.#monitoredTargetId = value;
+    }
+
+    setpair(newPair){
+      this.#pair = newPair;
     }
   
     setTp(value) {
@@ -114,7 +137,7 @@ class Signal {
      * @returns {string} - Retourne les détails du signal.
      */
     displayInfo() {
-      return `Signal [${this.#id}]: TP = ${this.#tp}, SL = ${this.#sl}`;
+      return `Signal [${this.#id}]: Pair=${this.#pair} TP = ${this.#tp}, SL = ${this.#sl}, parent= ${this.#parent}`;
     }
   }
   

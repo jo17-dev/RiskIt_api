@@ -1,5 +1,6 @@
 const { StringSession } = require('telegram/sessions');
 const TelegramService = require('../services/telegram.service');
+const signalInterpretationService = require('../services/signalInterpretation.service');
 
 
 const ProviderAccount = require('../models/ProviderAccount.class');
@@ -8,6 +9,7 @@ const MonitoredTargetDAO = require('../models/dao/MonitoredTarget.dao');
 
 const encryptService = require('../services/encrypt.service');
 const { TelegramClient} = require('telegram');
+const SignalDAO = require('../models/dao/Signal.dao');
 
 
 /**
@@ -30,15 +32,38 @@ const startEngine = async ()=>{
 
     const timingId = setInterval(async ()=>{
         clientPool.forEach(async (clienPoolItem)=>{
-                    let result = await TelegramService.getLatestMessages(clienPoolItem.client, {
-                        chanels:  await MonitoredTargetDAO.getAllByProviderId(clienPoolItem.providerAccount.getId()),
-                        time: (360*60)
-                    });
+            // 1st on recupère les message des différentes cible de monitoring
+            let result = await TelegramService.getLatestMessages(clienPoolItem.client, {
+                chanels:  await MonitoredTargetDAO.getAllByProviderId(clienPoolItem.providerAccount.getId()),
+                time: (10*60*60*1000), // les 10 dernieres heures hahah
+                numberOfMessagesPerChanel: 7
+            });
 
-                    console.log("nombre de discussions du client telegram ", clienPoolItem.providerAccount.displayInfo() , " : ", result.length);
+            // 2nd on boucle sur chaque message de chaque discussions pour interpreter chacun des message en signal via le servide signalInterpret.service.js
+            result.forEach(async (item)=>{
+                // console.log(item.monitoredTarget);
+                item.messages.forEach(async (messageItem)=>{
+                    // console.log(messageItem, " -- longeur: ", messageItem.length);
+                    let interpretedSignal = await signalInterpretationService.retreiveSignalFromTextV1(messageItem, item.monitoredTarget.getId());
 
-                    console.log(result);
+                    if(interpretedSignal.length > 0){
+                        console.log("message actuel interpreté avec succcess. ", interpretedSignal.length, " signaux cumulés trouvés");
+                        
+                        for(let i=0; i< interpretedSignal.length; i++){
+                            console.log("||| signal ||||");
+                            console.log(interpretedSignal[i].displayInfo());
+                        }
+                    }else{
+                        console.log("ce message n'était pas un signal");
+                    }
+                })
+            });
 
+            // 3td en suite on le stocke dans la base de données et s'est bon
+
+            console.log("nombre de discussions du client telegram ", clienPoolItem.providerAccount.displayInfo() , " : ", result.length);
+
+            // console.log(result);
         });
     }, 10000);
     

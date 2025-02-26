@@ -1,7 +1,7 @@
 const {TelegramClient, Api } = require("telegram");
 const { StringSession } = require("telegram/sessions");
 const MonitoredTarget = require("../models/MonitoredTarget.class");
-// const MonitoredChanel = require("../models/MonitoredChanel.class");
+const { Dialog } = require("telegram/tl/custom/dialog");
 
 // Sugession: Ce serai peu être bien qu'il y ai une classe qui gère ça non ?..
 
@@ -26,24 +26,35 @@ const connectClient = async (sessionString, apiId, apiHash)=>{
  * Récupéere les derniers messages dans le temps précisé
  * @param {TelegramClient} client client cible
  * @param {Object} params JSON de l'enseble des parametres
- * @param {number} params.time en secondes; délai maximum de reception des messages
+ * @param {number} params.time en mili-secondes; délai maximum de reception des messages. les 10 dernieres minutes par defaut
  * @param {number} params.numberOfMessagesPerChanel nombre de messages à récupérer par channel
  * @param {MonitoredTarget[]} params.chanels Groupes à observer pour les messages
  * 
- * @returns {Array<{chanelTitle: string, chanelId: number, messages: string[] }>} Un tableau d'objets où chaque objet contient des informations sur un canal.
+ * @returns {Array<{chanelTitle: string, chanelId: number, messages: string[], monitoredTarget: MonitoredTarget }>} Un tableau d'objets où chaque objet contient des informations sur un canal.
  */
-const getLatestMessages = async (client, {chanels=[], time=300, numberOfMessagesPerChanel=5})=>{
+const getLatestMessages = async (client, {chanels=[], time=(10*60*1000), numberOfMessagesPerChanel=15})=>{
     let result = [];
 
     // on récupère l'ensemble des discussions concernées
-    let allChats = (await client.getDialogs({archived: false})).filter(
+    /**
+     * @type {Array<{dialog: Dialog , chanel: MonitoredTarget}>}
+     */
+    let allChats = (await client.getDialogs({archived: false}))
+    .filter((item)=>{
+        for(let i=0; i<chanels.length;i++){
+            if(item.title == chanels[i].getTargetName() ){
+                return item;
+             } 
+        }
+    })
+    .map(
         (value)=>{
             for(let i=0; i<chanels.length;i++){
                 // console.log( "value", value.date, " target timestamp ", Date.now()-(time*1000));
-                if(value.title == chanels[i].getTargetName() ){
-                    // console.log(value.title);
-                    return value;
-                }
+                // if(value.title == chanels[i].getTargetName() ){
+                    console.log("discussion trouvée hahah");
+                    return {dialog: value, chanel: chanels[i]};
+                // }
             }
         }
     );
@@ -51,7 +62,7 @@ const getLatestMessages = async (client, {chanels=[], time=300, numberOfMessages
     console.log("nombre de discussions récupérés: ", allChats.length);
 
     for(let i=0; i<allChats.length; i++){ // pour chaque discussion récupérée
-        let targetEntity = await client.getEntity(allChats[i].entity.id);
+        let targetEntity = await client.getEntity(allChats[i].dialog.entity.id);
         let unsanitizedMessages = await client.getMessages(targetEntity, {
             limit: numberOfMessagesPerChanel,
         });
@@ -60,22 +71,8 @@ const getLatestMessages = async (client, {chanels=[], time=300, numberOfMessages
         const actual_timestamp = Date.now();
 
         for(let j=0; j< unsanitizedMessages.length; j++){ // pour chaque message de la discussion
-            // console.log(unsanitizedMessages.at(j).date.valueOf() - parseInt(actual_timestamp-(time*1000)));
-
-            console.log(
-                "date actuelle: ", new Date(actual_timestamp).toLocaleString('fr-FR', {
-                    
-                }) ,
-             " --- date d'envoir du message: ", new Date(unsanitizedMessages.at(j).date).toLocaleString('fr-FR', {
-                
-                }),
-             "-- message: ", unsanitizedMessages.at(j).message
-            );
-            
-            
             // la date du message est compatible, avec l'ancieneté recherchée, on le récupère
-            // console.log("date message: ", unsanitizedMessages.at(j).date, "   now ", (actual_timestamp-(time*1000)));
-            if(parseInt(unsanitizedMessages.at(j).date.valueOf()) - parseInt(actual_timestamp-(time*1000)) >= 0){
+            if(parseInt(unsanitizedMessages.at(j).date)*1000 - parseInt(actual_timestamp -(time)) >= 0){    
                 console.log("message trouvé -- ");
                 sanitizedMessages.push(
                     unsanitizedMessages.at(j).message
@@ -86,12 +83,10 @@ const getLatestMessages = async (client, {chanels=[], time=300, numberOfMessages
         result.push({
             chanelTitle: targetEntity.title,
             chanelId: targetEntity.id,
+            monitoredTarget: allChats[i].chanel,
             messages: sanitizedMessages
         });
     }
-
-
-    console.log("/////// nombre de messages au total: ", result.length);
 
     return result;
 

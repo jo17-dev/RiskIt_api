@@ -14,7 +14,7 @@ class TraderAgentDAO {
       const [results] = await requestor.makeRequest('SELECT * FROM trader_agents');
       return results.map(agent => new TraderAgent(
         agent.id,
-        agent.user_id,
+        agent.id_user,
         agent.agent_name,
         agent.credentials,
         agent.created_at,
@@ -37,7 +37,7 @@ class TraderAgentDAO {
         const agent = results[0];
         return new TraderAgent(
           agent.id,
-          agent.user_id,
+          agent.id_user,
           agent.agent_name,
           agent.credentials,
           agent.created_at,
@@ -58,7 +58,7 @@ class TraderAgentDAO {
   static async create(agent) {
     try {
       const [result] = await requestor.makeRequest(
-        'INSERT INTO trader_agents (user_id, agent_name, credentials, created_at, updated_at) VALUES (?, ?, ?, ?, ?)',
+        'INSERT INTO trader_agents (id_user, agent_name, credentials, created_at, updated_at) VALUES (?, ?, ?, ?, ?)',
         [
           agent.getUserId(),
           agent.getAgentName(),
@@ -80,16 +80,17 @@ class TraderAgentDAO {
    */
   static async update(agent) {
     try {
+      const timestamp = Date.now();
       await requestor.makeRequest(
-        'UPDATE trader_agents SET user_id = ?, agent_name = ?, credentials = ?, updated_at = ? WHERE id = ?',
+        'UPDATE trader_agents SET id_user = ?, agent_name = ?, credentials = ? WHERE id = ?',
         [
           agent.getUserId(),
           agent.getAgentName(),
           JSON.stringify(agent.getCredentials()),  // Assurez-vous que credentials est un JSON
-          agent.getUpdatedAt(),
           agent.getId()
         ]
       );
+
     } catch (err) {
       throw new Error('Erreur lors de la mise à jour de l\'agent : ' + err.message);
     }

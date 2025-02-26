@@ -45,14 +45,16 @@ CREATE TABLE IF NOT EXISTS monitored_targets (
 CREATE TABLE IF NOT EXISTS signals (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_monitored_target INT,
-    pair VARCHAR(20), -- pair de trading recupérée
+    pair VARCHAR(20), -- pair de trading récupérée
     tp FLOAT NOT NULL,
     sl FLOAT NOT NULL,
     entry_upper_born FLOAT DEFAULT NULL,
     entry_lower_born FLOAT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_monitored_target) REFERENCES monitored_targets(id) ON DELETE CASCADE
+    parent INT DEFAULT NULL, -- champ parent nullable
+    FOREIGN KEY (id_monitored_target) REFERENCES monitored_targets(id) ON DELETE CASCADE,
+    FOREIGN KEY (parent) REFERENCES signals(id) ON DELETE CASCADE -- référence à l'id du parent dans la même table
 );
 
 -- Table trades
