@@ -11,6 +11,8 @@ const encryptService = require('../services/encrypt.service');
 const { TelegramClient} = require('telegram');
 const SignalDAO = require('../models/dao/Signal.dao');
 
+const engineStatus = {isRunning: false};
+
 
 /**
  * @type {Array<{client: TelegramClient, providerAccount: ProviderAccount}>}
@@ -66,8 +68,8 @@ const startEngine = async ()=>{
             // console.log(result);
         });
     }, 10000);
-    
-    return ()=>{clearInterval(timingId)};
+    engineStatus.isRunning = true;
+    return ()=>{clearInterval(timingId); engineStatus.isRunning = false;};
 }
 
 /**
@@ -131,7 +133,7 @@ const addClientToPool = async (providerAccountId)=>{
  */
 const getEngineStatut = ()=>{
     return {
-        is_runing: clientPool.length > 0,
+        is_runing: engineStatus.isRunning,
         numberOfClients: clientPool.length,
     }
 }

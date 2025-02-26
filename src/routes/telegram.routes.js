@@ -4,7 +4,7 @@ const adminMiddleware = require('../middlewares/isAdmin.middleware');
 const clientMiddleware = require('../middlewares/isClient.middleware');
 
 // definission des middlewares:
-router.all(["/start", "/stop"], adminMiddleware); // routes pour admin
+router.all(["/start", "/stop", "/status"], adminMiddleware); // routes pour admin
 router.all(["/pool", "/pool/add"], clientMiddleware); // routes pour client
 
 
