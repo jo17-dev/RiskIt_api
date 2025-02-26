@@ -42,6 +42,7 @@ router.post('/trade', (req, res)=>{
     })
 });
 
+
 // get a trade informations on kucoin
 router.get('/trade/:idTrade', (req, res)=>{
     
@@ -75,6 +76,24 @@ router.post('/create-ws-token', async (req, res)=>{
 
 });
 
+router.post('/send-ws-message', (req, res)=>{
+   try{
+      kucoinController.sendWSSMessage({
+         id: "1545910590801",
+         type: "ping"
+      });
+
+      res.json({
+         message: "reussie"
+      })
+   }catch(err){
+      console.log(err);
+      res.json({
+         message: "Echec de l'op",
+         content: err?.message
+      })
+   }
+});
 
 router.get('/listen-ws', async (req, res)=>{
    await kucoinController.listenWS().then(

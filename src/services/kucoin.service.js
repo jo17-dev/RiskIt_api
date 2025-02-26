@@ -7,7 +7,7 @@ const encryptService = require('../services/encrypt.service');
 const crypto = require('crypto');
 require('dotenv').config();
 /**
- * @type {{future: strinng, spot:string}} 
+ * @type {{future: string, spot:string}} 
  */
 const TradeType = {
     future: "future",

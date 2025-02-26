@@ -68,17 +68,15 @@ class SignalDAO {
   static async create(signal) {
     try {
       const [result] = await requestor.makeRequest(
-        'INSERT INTO signals (monitored_target_id, pair, tp, sl, entry_upper_born, entry_lower_born, parent ,created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO signals (id_monitored_target, pair, tp, sl, entry_upper_born, entry_lower_born, parent) VALUES (?, ?, ?, ?, ?, ?, ?)',
         [
-          signal.getMonitoredTargetId(),
+          signal.getMonitoredTargetId() ,
           signal.getpair(),
           signal.getTp(),
           signal.getSl(),
           signal.getEntryUpperBorn(),
           signal.getEntryLowerBorn(),
-          signal.getParent(),
-          signal.getCreatedAt(),
-          signal.getUpdatedAt()
+          signal.getParent()
         ]
       );
       return result.insertId;  // ID du signal inséré

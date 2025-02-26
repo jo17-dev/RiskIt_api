@@ -1,7 +1,9 @@
-// OUUIIIII je sait ce fichier ne fait pas de sens étant donné qu'on notre la présente de 
+// OUUIIIII je sait ce fichier ne fait pas de sens étant donné qu'on note la présence de 
 // l'IA hahahaha. Mais promis je vais le changer dans les autres versions
 
+
 const Signal = require("../models/Signal.class");
+const SignalDAO = require('../models/dao/Signal.dao');
 
 
 /**
@@ -9,9 +11,9 @@ const Signal = require("../models/Signal.class");
  * Il renvoie un ensemble de signaux lié à celui-ci
  * @param {string} message - Le message du signal de trading contenant les informations à extraire.
  * @param {number} monitored_target_id l'id du compte de provenance dans la db 
- * @returns {Array<Signal | null>} Un tableau contenant les données extraites du signal de trading.
+ * @returns {Array<Signal | null>} Un tableau contenant les données extraites du signal de trading. le premier est le signal parent
  */
-function retreiveSignalFromTextV1(message, monitored_target_id) {
+async function retreiveSignalFromTextV1(message, monitored_target_id) {
     // Extraction de la paire de trading (exemple: #XVS/USDT)
     const pairMatch = message.match(/#([A-Za-z0-9]+\/[A-Za-z0-9]+)/);
     const pair = pairMatch ? pairMatch[1] : null;
@@ -43,13 +45,13 @@ function retreiveSignalFromTextV1(message, monitored_target_id) {
         // On crée un signal avec les informations extraites
 
         const date = Date.now();
-        // premier signal correspondant
+        // premier signal correspondant (  signal parent)
         result.push(
             new Signal(
                 null,
                 monitored_target_id,
                 pair,
-                takeProfits[0],
+                takeProfits[takeProfits.length-1],
                 stopLoss,
                 entryPrice,
                 entryPrice,
@@ -58,24 +60,31 @@ function retreiveSignalFromTextV1(message, monitored_target_id) {
                 date
             )
         )
+        let signalId = await SignalDAO.create(result[0]);
+
+        result[0].setId(signalId);
 
         // les signaux pour les autres TP sont mappés
         for(let i=1; i<takeProfits.length; i++){
-            result.push(
-                new Signal(
-                    null,
-                    monitored_target_id,
-                    pair,
-                    takeProfits[i],
-                    takeProfits[i-1],
-                    takeProfits[i-1],
-                    takeProfits[i-1],
-                    null,
-                    date,
-                    date
-                )
+            let tmp_signal = new Signal(
+                null,
+                monitored_target_id,
+                pair,
+                takeProfits[i],
+                takeProfits[i-1],
+                takeProfits[i-1],
+                takeProfits[i-1],
+                result[0].getId(),
+                date,
+                date
             )
+            result.push(
+                tmp_signal
+            );
+
+            await SignalDAO.create(tmp_signal);
         }
+
         return result;
     } else {
         return [];

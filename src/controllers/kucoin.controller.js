@@ -11,7 +11,7 @@ const convertpair = (pair)=>{
 }
 
 /**
- * @type {Socket<DefaultEventsMap, DefaultEventsMap> | null} socket globale utilisée pour kucoin
+ * @type {WebSocket} socket globale utilisée pour kucoin
  */
 let kucoinSocket = null;
 
@@ -21,20 +21,39 @@ let kucoinSocket = null;
  */
 const createmarketOrder = async ()=>{
     let kucoinAgent = await TraderAgentDAO.getById(3);
-    let signal = new Signal(
+    let signalParent = new Signal(
         90,
         1,
         "YFI/USDT",
-        7600.0,
-        7500.0,
-        7415.0,
-        7413,
+        6650, // le plus grand TP
+        6500, // le plus petit stop loss
+        6570.0,
+        6570.0,
         null,
         Date.now(),
         Date.now()
     ); // signal en buy
 
-    return kucoinService.makeOrder(signal, kucoinAgent, true);
+    // ceci est un ordre stop-limit correpondant à 30% du premier
+    let signalTP = new Signal(
+        91,
+        1,
+        "YFI/USDT",
+        6650,// tp: repensete le point de sortie gangante du trade
+        6600, // sl: represetne le pointe de sortie perdante du trade
+        6600,
+        6600,
+        null,
+        Date.now(),
+        Date.now()
+    ); // signal en buy
+
+    // on vas exécuter les 2 ordres ici
+    const result = {};
+    result.ordreParent = await kucoinService.makeOrder(signalParent, kucoinAgent, true);
+    result.ordreTP = await kucoinService.makeTpOrder(signalTP, kucoinAgent, true);
+
+    return result;
 }
 
 const getAllActiveOrders = async ()=>{
@@ -49,20 +68,20 @@ const cancelOrder = async (pair)=>{
 }
 
 const createNewWSSToken = async ()=>{
-    try{
-        let kucoinAgent = await TraderAgentDAO.getById(3);
-        
-        const result = await kucoinService.createNewWSSToken(kucoinAgent);
+    let kucoinAgent = await TraderAgentDAO.getById(3);
+    
+    const result = await kucoinService.createNewWSSToken(kucoinAgent);
 
-        // is l'item wss_token n'est pas présent, ce n'est peux être pas un compte valide/ il n'as pas le crédential ici demandé (wss_token)
-        if("wss_token" in kucoinAgent.getCredentials()){
-            kucoinAgent.getCredentials().wss_token = result.data.token;
-        }else{
-            throw new Error();
-        }
+    // is l'item wss_token n'est pas présent, ce n'est peux être pas un compte valide/ il n'as pas le crédential ici demandé (wss_token)
+    if("wss_token" in kucoinAgent.getCredentials()){
+        kucoinAgent.getCredentials().wss_token = result.data.token;
+        await TraderAgentDAO.update(kucoinAgent);
+        return result;
+    }else{
+        let tmp = kucoinAgent.getCredentials();
 
-    }catch(err){
-        throw new Error("La création du token n'as pas réussie");
+        tmp.wss_token = result.data.token;
+        kucoinAgent.setCredentials(tmp);
     }
 }
 
@@ -70,16 +89,56 @@ const listenWS = async ()=>{
     let kucoinAgent = await TraderAgentDAO.getById(3);
     kucoinSocket =  kucoinService.listenWSS(kucoinAgent);
 
-    console.log("kucoin socket: ", kucoinSocket);
+    // if(kucoinSocket != null){
+        console.log("socket prete a fonctionner")
+
+        // kucoinSocket.onopen = (ev)=>{
+        //     console.log("////////////////////////////////////////// connexion ouverte //////////////////")
+        //     kucoinSocket.onmessage = (messageEvent) =>{
+        //         console.log("---");
+        //         console.log(messageEvent.data);
+        //     }
+        //     // lorsque la connexion s'ouvre, on essayer de faire un ping
+        //     console.log("socket ready state: ", kucoinAgent.readyState);
+        //     kucoinSocket.send(
+        //         JSON.stringify({
+        //             id: "1545910590801",
+        //             type:"ping"
+        //         })
+        //     );  
+    
+        // }
+    
+    // }
 }
 
 const closeKucoinWSS = async ()=>{
+
     const result = kucoinService.closeWSS(kucoinSocket);
 
     console.log("closed:: ", result);
 
     if(!result || kucoinService == null){
         throw new Error("Le service websocket n'as pas été déconnecté");
+    }
+}
+
+/**
+ * 
+ * @param {object} message 
+ */
+const sendWSSMessage = (message)=>{
+    if(kucoinSocket == null){
+        console.log("ce n'est pas possible");
+        throw new Error("la socket n'est pas initialisée");
+    }else{
+        kucoinSocket.send(
+            JSON.stringify({
+                id: "1545910590801",
+                type:"ping"
+            })
+        );  
+        console.log("bob retounr");
     }
 }
 
@@ -90,5 +149,6 @@ module.exports = {
     cancelOrder,
     createNewWSSToken,
     listenWS,
-    closeKucoinWSS
+    closeKucoinWSS,
+    sendWSSMessage
 }
