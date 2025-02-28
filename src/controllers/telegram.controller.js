@@ -103,6 +103,32 @@ const removeClientFromPool = async (providerAccountId)=>{
 }
 
 /**
+ * recupérer un client de la pool
+ * @param {int} providerAccountId
+ * @returns {Promise<JSON>}
+ */
+const getPooledClient = async (providerAccountId)=>{
+    const targetProviderAccount = await ProviderAccountDAO.getById(providerAccountId);
+
+    if(targetProviderAccount == null){
+        throw new Error("Le compte correspondant n'as pas été trouvé")
+    }
+    if(targetProviderAccount.getPlatformName() != "telegram"){
+        throw new Error("Le compte correspondant n'est pas du bon type (telegram)");
+    }
+    console.log("le priovider a été trouvé")
+    let targetPosition = -1;
+
+    for(let i=0; i< clientPool.length; i++) {
+        if(clientPool[i].providerAccount.getId() == providerAccountId){
+            return clientPool[i].providerAccount.toString()
+        }
+    };
+
+    throw new Error("Le compte correspondans à l'id n'as pas été recupéré");
+}
+
+/**
  * ajouter un client à la pool de monitoring (en utilisant son provider): le moteur dois être démaré ?
  * @param {int} providerAccountId id du "provider account" à ajouter (compte telgram)
  * 
@@ -186,5 +212,5 @@ const getEngineStatut = ()=>{
 
 
 module.exports = {
-    startEngine, getEngineStatut, addClientToPool, removeClientFromPool, getPooledClients
+    startEngine, getEngineStatut, addClientToPool, removeClientFromPool, getPooledClients, getPooledClient
 }

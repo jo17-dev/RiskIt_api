@@ -31,12 +31,38 @@ router.get('/', (req, res)=>{
 
 // liste des client dans la pool de monitoring
 router.get('/pool', (req, res)=>{
-    
     res.json({
         statutText: "OK",
         message: telegramController.getPooledClients()
     });
-})
+});
+
+
+// consulter un client de la pool
+router.get('/pool/:providerId', (req, res)=>{
+
+    let providerId = parseInt(req.params.providerId);
+
+    if(isNaN(providerId)){
+        res.json({
+            statutText: "Failed",
+            message: {}
+        })
+    }
+
+    telegramController.getPooledClient(req.params.providerId)
+    .then((value)=>{
+        res.json({
+            statutText: "OK",
+            message: value.stringify()
+        });
+    }).catch((reason)=>{
+        res.json({
+            statutText: "Failed",
+            message: reason.message
+        })
+    });
+});
 
 
 router.post('/pool', (req, res)=>{
