@@ -1,3 +1,5 @@
+const { json } = require("express");
+
 /**
  * Modèle représentant un compte fournisseur: genre telegram, discord, insta, ...
  * @typedef {Object} ProviderAccount
@@ -91,6 +93,18 @@ class ProviderAccount {
      */
     displayInfo() {
       return `Provider Account [${this.#id}]: ${this.#platformName}, User ID: ${this.#userId}`;
+    }
+
+    toString(){
+      return JSON.stringify(
+        {
+          id: this.#id,
+          userId: this.#userId,
+          platformName: this.#platformName,
+          createdAt: this.#createdAt,
+          updatedAt: this.#updatedAt
+        }
+      )
     }
   }
   

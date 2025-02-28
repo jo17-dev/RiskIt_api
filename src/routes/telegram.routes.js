@@ -29,6 +29,16 @@ router.get('/', (req, res)=>{
 });
 
 
+// liste des client dans la pool de monitoring
+router.get('/pool', (req, res)=>{
+    
+    res.json({
+        statutText: "OK",
+        message: telegramController.getPooledClients()
+    });
+})
+
+
 router.post('/pool', (req, res)=>{
     telegramController.addClientToPool(parseInt(req.body.providerId))
     

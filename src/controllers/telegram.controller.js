@@ -157,6 +157,21 @@ const addClientToPool = async (providerAccountId)=>{
 }
 
 /**
+ * recupérer la liste des cours disponibles dans la pool de monitoring
+ * @returns {Array<JSON>} json des clients
+ */
+const getPooledClients = ()=>{
+    const result = [];
+    clientPool.forEach(
+        (element)=>{
+            result.push(element.providerAccount.toString())
+        }
+    );
+
+    return result;
+}
+
+/**
  * 
  * Retourne le staut complet du service telegram
  * @returns {Object}
@@ -171,5 +186,5 @@ const getEngineStatut = ()=>{
 
 
 module.exports = {
-    startEngine, getEngineStatut, addClientToPool, removeClientFromPool
+    startEngine, getEngineStatut, addClientToPool, removeClientFromPool, getPooledClients
 }
