@@ -29,14 +29,32 @@ router.get('/', (req, res)=>{
 });
 
 
-router.get('/pool/add/:providerId', (req, res)=>{
-    telegramController.addClientToPool(parseInt(req.params.providerId))
+router.post('/pool', (req, res)=>{
+    telegramController.addClientToPool(parseInt(req.body.providerId))
+    
     .then((value)=>{
         res.json({
             statusText: "OK",
             message: "Le client à été coorectement ajouté à la pool de monitoring pour les signaux"
         })
     }).catch((reason)=>{
+        res.json({
+            statusText: "Failed",
+            message: reason.message
+        });
+    })
+});
+
+
+router.delete('/pool', (req, res)=>{
+    telegramController.removeClientFromPool(req.body.providerId)
+    .then((value)=>{
+        res.json({
+            statusText: "OK",
+            message: "Le client à été coorectement enlevé de la pool de monitoring pour les signaux"
+        })
+    }).catch((reason)=>{
+        console.log(reason);
         res.json({
             statusText: "Failed",
             message: reason.message
