@@ -89,3 +89,6 @@ class MonitoredtargetAndTraderAgentSouscriptionDao {
     }
   }
 }
+
+
+module.exports = MonitoredtargetAndTraderAgentSouscriptionDao;
