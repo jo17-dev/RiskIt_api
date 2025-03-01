@@ -1,11 +1,13 @@
 const { StringSession } = require('telegram/sessions');
 const TelegramService = require('../services/telegram.service');
 const signalInterpretationService = require('../services/signalInterpretation.service');
+const kucoinService = require('../services/kucoin.service');
 
 
 const ProviderAccount = require('../models/ProviderAccount.class');
 const ProviderAccountDAO = require('../models/dao/ProvidedAccount.dao');
 const MonitoredTargetDAO = require('../models/dao/MonitoredTarget.dao');
+const MonitoredtargetAndTraderAgentSouscriptionDao = require('../models/dao/MonitoredtargetAndTraderAgentSouscription.dao');
 
 const encryptService = require('../services/encrypt.service');
 const { TelegramClient} = require('telegram');
@@ -56,10 +58,21 @@ const startEngine = async ()=>{
                             console.log(interpretedSignal[i].displayInfo());
                         }
 
-                        interpretedSignal.forEach(async (interpretedSignalItem)=>{
-                            // const subs = await MonitoredtargetAndTraderAgentSouscriptionDao.findByMonitoredTarget(interpretedSignalItem.getId());
-                        });
+                        // recupération de tous les agents de tragind qui ont souscrit au signal.
+                        const subs = await MonitoredtargetAndTraderAgentSouscriptionDao.getTraderAgentsByMonitoredTarget(interpretedSignalItem.getMonitoredTargetId());
+                        // on recupère tous les subs relatifs a la monitored target assiociée au signal.
 
+                        // on fait les trades par type de trading
+                        subs.forEach( async (subsItem)=>{
+                            if(subsItem.getAgentName() == "kucoin"){
+                                // pour kucoin: le 1er signal est le pere, les autres sont limits.
+                                interpretedSignal.forEach(async (interpretedSignalItem)=>{
+                                    await kucoinService.makeOrder(interpretedSignalItem, subsItem, false);
+                                });
+                            }else{
+                                console.log("en vrai on ne peux rien faire à date hahaha");
+                            }
+                        });
                     }else{
                         console.log("ce message n'était pas un signal");
                     }

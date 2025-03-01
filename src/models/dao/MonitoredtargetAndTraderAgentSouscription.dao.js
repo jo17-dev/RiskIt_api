@@ -1,5 +1,7 @@
 const requestor = require('../config/database.requestor');
+
 const MonitoredtargetAndTraderAgentSouscription = require('../MonitoredtargetAndTraderAgentSouscription.class');
+const TraderAgent = require('../TraderAgent.class');
 
 class MonitoredtargetAndTraderAgentSouscriptionDao {
   /**
@@ -19,7 +21,7 @@ class MonitoredtargetAndTraderAgentSouscriptionDao {
   }
 
     /**
-     * Récupère tous les trader agents- correspondant à un monitored target
+     * Récupère tous les id trader agents- correspondant à un monitored target
      * @param {number} idMonitoredTarget 
      * @returns {Promise<MonitoredtargetAndTraderAgentSouscription[]>}
      */
@@ -34,6 +36,28 @@ class MonitoredtargetAndTraderAgentSouscriptionDao {
             throw new Error('Erreur lors de la récupération des souscriptions monitored target - trader agents : ' + err.message);
         }
     }
+
+    
+    /**
+     * Récupère tous les traders agents
+     * @param {number} idMonitoredTarget 
+     * @returns {Promise<TraderAgent[]>}
+     */
+    static async getTraderAgentsByMonitoredTarget(idMonitoredTarget) {
+      try {
+          const [results] = await requestor.makeRequest('SELECT * FROM monitored_target_and_trader_agent_souscriptions INNER JOIN trader_agents ON id_trader_agent = id  WHERE id_monitored_target = ?', [idMonitoredTarget]);
+          return results.map(item => new TraderAgent(
+              item.id,
+              item.id_user,
+              item.agent_name,
+              item.credentials,
+              item.created_at,
+              item.updated_at
+          ));
+      } catch (err) {
+          throw new Error('Erreur lors de la récupération des souscriptions monitored target - trader agents : ' + err.message);
+      }
+  }
 
     /**
      * Récupère tous les monitored target correspondant à un trader agents 
