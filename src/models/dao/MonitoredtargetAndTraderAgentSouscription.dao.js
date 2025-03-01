@@ -56,7 +56,7 @@ class MonitoredtargetAndTraderAgentSouscriptionDao {
   /**
    * Insère une nouvelle souscription.
    * @param {MonitoredtargetAndTraderAgentSouscription} target - L'objet admin à insérer.
-   * @returns {Promise} - L'ID de la souscription insérée.
+   * @returns {Promise<void>} - L'ID de la souscription insérée.
    */
   static async create(target) {
     try {
@@ -73,13 +73,17 @@ class MonitoredtargetAndTraderAgentSouscriptionDao {
   }
 
   /**
-   * Supprime un admin.
-   * @param {number} userId - L'ID de l'utilisateur associé à l'admin à supprimer.
+   * Supprime une souscription
+   * @param {MonitoredtargetAndTraderAgentSouscription} target - souscription à suprimemer.
    * @returns {Promise<void>} - Une promesse vide.
    */
-  static async delete(userId) {
+  static async delete(target) {
     try {
-      await requestor.makeRequest('DELETE FROM admins WHERE user_id = ?', [userId]);
+      await requestor.makeRequest('DELETE FROM admins WHERE id_monitored_target = ? AND id_trader_agent = ?',
+         [
+            target.getIdMonitoredtarget(),
+            target.getIdTraderAgent()
+         ]);
     } catch (err) {
       throw new Error('Erreur lors de la suppression de l\'admin : ' + err.message);
     }
