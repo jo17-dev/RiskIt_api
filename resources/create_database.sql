@@ -80,3 +80,10 @@ CREATE TABLE IF NOT EXISTS trader_agents (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (id_user) REFERENCES users(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS monitored_target_and_trader_agent_souscriptions (
+    id_monitored_target INT NOT NULL,
+    id_trader_agent INT NOT NULL,
+    FOREIGN KEY (id_trader_agent) REFERENCES trader_agents(id) ON DELETE CASCADE,
+    FOREIGN KEY (id_monitored_target) REFERENCES monitored_targets(id) ON DELETE CASCADE
+);

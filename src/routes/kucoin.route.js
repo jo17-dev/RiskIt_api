@@ -29,7 +29,7 @@ router.get('/trades', (req, res)=>{
 });
 
 
-// make a trade :
+// make a trade route privée
 router.post('/trade', (req, res)=>{
     kucoinController.createmarketOrder().then(
       (value)=>{
@@ -45,7 +45,7 @@ router.post('/trade', (req, res)=>{
 
 // get a trade informations on kucoin
 router.get('/trade/:idTrade', (req, res)=>{
-    
+       
 });
 
 // testing route

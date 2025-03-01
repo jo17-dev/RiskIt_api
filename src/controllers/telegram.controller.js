@@ -28,7 +28,7 @@ const startEngine = async ()=>{
     /**
      * 1st boucler sur tous les comptes à monitorer
      * récupérer son client et check ses derniers messages
-     * 
+     * recupérer tous ses subs et faire le trade.
      */
     console.log("the telegram engine is starting...")
 
@@ -55,6 +55,11 @@ const startEngine = async ()=>{
                             console.log("||| signal ||||");
                             console.log(interpretedSignal[i].displayInfo());
                         }
+
+                        interpretedSignal.forEach(async (interpretedSignalItem)=>{
+                            // const subs = await MonitoredtargetAndTraderAgentSouscriptionDao.findByMonitoredTarget(interpretedSignalItem.getId());
+                        });
+
                     }else{
                         console.log("ce message n'était pas un signal");
                     }
