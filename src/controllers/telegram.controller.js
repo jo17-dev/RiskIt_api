@@ -59,7 +59,7 @@ const startEngine = async ()=>{
                         }
 
                         // recupération de tous les agents de tragind qui ont souscrit au signal.
-                        const subs = await MonitoredtargetAndTraderAgentSouscriptionDao.getTraderAgentsByMonitoredTarget(interpretedSignalItem.getMonitoredTargetId());
+                        const subs = await MonitoredtargetAndTraderAgentSouscriptionDao.getTraderAgentsByMonitoredTarget(interpretedSignal[0].getMonitoredTargetId());
                         // on recupère tous les subs relatifs a la monitored target assiociée au signal.
 
                         // on fait les trades par type de trading

@@ -78,11 +78,13 @@ async function retreiveSignalFromTextV1(message, monitored_target_id) {
                 date,
                 date
             )
+            
+            const newId = await SignalDAO.create(tmp_signal);
+            tmp_signal.setId(newId);
             result.push(
                 tmp_signal
             );
 
-            await SignalDAO.create(tmp_signal);
         }
 
         return result;
