@@ -135,6 +135,8 @@ const makeOrder = async (signal, traderAgent, executeNow=true)=>{
         data: body
     });
 
+    console.log((response?.data?.code != '200000') ? "trade non exécuté. stop loss mal set pour celui-ci "+response.data?.msg : "trade executé:");
+
     // const response = await getLimitRisk(signal);
 
     return response?.data;

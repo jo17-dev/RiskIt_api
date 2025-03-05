@@ -49,7 +49,6 @@ const startEngine = async ()=>{
                 item.messages.forEach(async (messageItem)=>{
                     // console.log(messageItem, " -- longeur: ", messageItem.length);
                     let interpretedSignal = await signalInterpretationService.retreiveSignalFromTextV1(messageItem, item.monitoredTarget.getId());
-
                     if(interpretedSignal.length > 0){
                         console.log("message actuel interpreté avec succcess. ", interpretedSignal.length, " signaux cumulés trouvés");
                         

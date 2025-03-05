@@ -24,15 +24,15 @@ async function retreiveSignalFromTextV1(message, monitored_target_id) {
 
     // Extraction du prix d'entrée (après LONG ou SHORT)
     const entryPriceMatch = message.match(/(LONG|SHORT)\s*[:\s]*([\d.]+)/);
-    const entryPrice = entryPriceMatch ? parseFloat(entryPriceMatch[2]) : null;
+    const entryPrice = entryPriceMatch ? Math.round(parseFloat(entryPriceMatch[2])*10000)/10000 : null; // 4 chiffres max apres la virgule hahah
 
     // Extraction des Take profits (tous les 🚀 suivis de nombres)
-    const takeProfitMatches = message.match(/🚀(\d+(\.\d+)?)/g);
-    const takeProfits = takeProfitMatches ? takeProfitMatches.map(val => parseFloat(val.replace('🚀', ''))) : [];
+    const takeProfitMatches = message.match(/🚀 TP(\d+) (\d+\.\d+)/g);
+    const takeProfits = takeProfitMatches ? takeProfitMatches.map(val => Math.round(parseFloat(val.replace(/🚀 TP\d+/g, '').trim())*10000)/10000) : [];
 
     // Extraction du Stop loss (⛔ suivi d'un nombre)
     const stopLossMatch = message.match(/⛔\s*STOP\s*LOSS:\s*(\d+(\.\d+)?)/);
-    const stopLoss = stopLossMatch ? parseFloat(stopLossMatch[1]) : null;
+    const stopLoss = stopLossMatch ? Math.round(parseFloat(stopLossMatch[1])*10000)/10000 : null;
 
     // Extraction du Leverage (exemple: 10x)
     const leverageMatch = message.match(/Leverage\s*:\s*(\d+x)/);
